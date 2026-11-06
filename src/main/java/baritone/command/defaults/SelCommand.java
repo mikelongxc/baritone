@@ -196,6 +196,7 @@ public class SelCommand extends Command {
                 composite.put(schematic, min.x - origin.x, min.y - origin.y, min.z - origin.z);
             }
             baritone.getBuilderProcess().build("Fill", composite, origin);
+            if(action==Action.CLEARAREA && dev.autostore.Controller.INSTANCE!=null && baritone==dev.autostore.Controller.INSTANCE.baritone())dev.autostore.Controller.INSTANCE.observeSelectionClear();
             logDirect("Filling now");
         } else if (action == Action.COPY) {
             BetterBlockPos playerPos = ctx.viewerPos();

@@ -2,36 +2,56 @@
   "schemaVersion": 1,
   "id": "baritone-meteor",
   "version": "${version}",
-
-  "name": "Baritone",
-  "description": "Google Maps for Blockgame",
+  "name": "Baritone AutoStore",
+  "description": "Baritone fork: #store then #mine, with automatic deposits and Meteor combat/eating cooperation.",
   "authors": [
-    "leijurv", "Brady"
+    "leijurv",
+    "Brady"
   ],
   "contact": {
-    "homepage": "https://github.com/cabaletta/baritone",
-    "sources": "https://github.com/cabaletta/baritone",
-    "issues": "https://github.com/cabaletta/baritone/issues"
+    "homepage": "https://github.com/mikelongxc/baritone",
+    "sources": "https://github.com/mikelongxc/baritone",
+    "issues": "https://github.com/mikelongxc/baritone/issues"
   },
-
-  "license": "LGPL-3.0",
+  "license": [
+    "LGPL-3.0-or-later",
+    "GPL-3.0-only"
+  ],
   "icon": "assets/baritone/icon.png",
-
-  "environment": "*",
+  "environment": "client",
   "entrypoints": {
+    "meteor": [
+      "dev.autostore.AutoStoreAddon"
+    ]
   },
   "mixins": [
-      "mixins.baritone-meteor.json"
+    "mixins.baritone-meteor.json",
+    "autostore.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.19.3",
-    "minecraft": ["26.2"]
+    "minecraft": [
+      "26.2"
+    ],
+    "java": ">=25",
+    "meteor-client": "26.2-35",
+    "nether-pathfinder": "1.6.0"
   },
   "custom": {
     "modmenu": {
       "links": {
         "modmenu.discord": "https://discord.gg/s6fRBAUpmr"
       }
+    },
+    "meteor-client:color": "210,180,80"
+  },
+  "breaks": {
+    "autostore": "*",
+    "baritone": "*"
+  },
+  "jars": [
+    {
+      "file": "META-INF/jars/nether-pathfinder-1.6-fabric.jar"
     }
-  }
+  ]
 }

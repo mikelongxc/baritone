@@ -188,6 +188,12 @@ public final class BlockOptionalMeta {
         return String.format("BlockOptionalMeta{block=%s,properties=%s}", block, propertiesDescription);
     }
 
+    /** Lossless command selector for the storage supervisor's durable target. */
+    public String asCommandArgument() {
+        String id = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(block).toString();
+        return propertiesDescription.equals("{}") ? id : id + "[" + propertiesDescription.substring(1, propertiesDescription.length()-1).replace(":", "=") + "]";
+    }
+
     public BlockState getAnyBlockState() {
         if (blockstates.size() > 0) {
             return blockstates.iterator().next();

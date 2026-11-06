@@ -87,7 +87,13 @@ public class ExecutionControlCommands {
                 if (paused[0]) {
                     throw new CommandInvalidStateException("Already paused");
                 }
+                if (dev.autostore.Controller.INSTANCE != null && dev.autostore.Controller.INSTANCE.cooperativeJob()) {
+                    dev.autostore.Controller.INSTANCE.manualPause();
+                    logDirect("Mining and storage paused");
+                    return;
+                }
                 paused[0] = true;
+                if(dev.autostore.Controller.INSTANCE!=null)dev.autostore.Controller.INSTANCE.miningTools.manualPause(true);
                 logDirect("Paused");
             }
 
@@ -117,11 +123,17 @@ public class ExecutionControlCommands {
             @Override
             public void execute(String label, IArgConsumer args) throws CommandException {
                 args.requireMax(0);
+                if (dev.autostore.Controller.INSTANCE != null && dev.autostore.Controller.INSTANCE.manualResume()) {
+                    paused[0] = false;
+                    logDirect("Mining and storage resumed");
+                    return;
+                }
                 baritone.getBuilderProcess().resume();
                 if (!paused[0]) {
                     throw new CommandInvalidStateException("Not paused");
                 }
                 paused[0] = false;
+                if(dev.autostore.Controller.INSTANCE!=null)dev.autostore.Controller.INSTANCE.miningTools.manualPause(false);
                 logDirect("Resumed");
             }
 
@@ -149,7 +161,7 @@ public class ExecutionControlCommands {
             @Override
             public void execute(String label, IArgConsumer args) throws CommandException {
                 args.requireMax(0);
-                logDirect(String.format("Baritone is %spaused", paused[0] ? "" : "not "));
+                logDirect(String.format("Baritone is %spaused", (paused[0] || dev.autostore.Controller.INSTANCE != null && dev.autostore.Controller.INSTANCE.manuallyPaused()) ? "" : "not "));
             }
 
             @Override
@@ -179,6 +191,7 @@ public class ExecutionControlCommands {
                 if (paused[0]) {
                     paused[0] = false;
                 }
+                if (dev.autostore.Controller.INSTANCE != null) dev.autostore.Controller.INSTANCE.manualStop();
                 baritone.getPathingBehavior().cancelEverything();
                 logDirect("ok canceled");
             }

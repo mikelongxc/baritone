@@ -1,163 +1,55 @@
-/*
- * This file is part of Baritone.
- *
- * Baritone is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Baritone is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Baritone.  If not, see <https://www.gnu.org/licenses/>.
- */
-
-allprojects {
-    apply plugin: 'java'
-    apply plugin: "xyz.wagyourtail.unimined"
-    apply plugin: "maven-publish"
-
-    base {
-        archivesName = rootProject.archives_base_name
-    }
-
-    /*def vers = ""
-    try {
-        vers = 'git describe --always --tags --first-parent --dirty'.execute().text.trim()
-    } catch (Exception e) {
-        println "Version detection failed: " + e
-    }
-    if (!vers.startsWith("v")) {
-        println "using version number: " + rootProject.mod_version
-        version = rootProject.mod_version
-    } else {
-        version = vers.substring(1)
-        println "Detected version " + version
-    }*/
-
-    version = rootProject.mod_version
-    group = rootProject.maven_group
-
-    java {
-        sourceCompatibility = JavaVersion.toVersion(project.java_version)
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(sourceCompatibility.majorVersion.toInteger()))
-        }
-    }
-
-    repositories {
-        maven {
-            url = "https://files.minecraftforge.net/maven/"
-        }
-        maven {
-            name = 'spongepowered-repo'
-            url = 'https://repo.spongepowered.org/repository/maven-public/'
-        }
-        maven {
-            name = 'fabric-maven'
-            url = 'https://maven.fabricmc.net/'
-        }
-        maven {
-            name = 'impactdevelopment-repo'
-            url = 'https://impactdevelopment.github.io/maven/'
-        }
-        maven {
-            name = "ldtteam"
-            url = "https://maven.parchmentmc.net/"
-        }
-        // for the newer version of launchwrapper
-        maven {
-            name = "multimc-maven"
-            url = "https://files.multimc.org/maven/"
-            metadataSources {
-                artifact()
-            }
-        }
-        mavenCentral()
-        maven {
-            name = 'babbaj-repo'
-            url = 'https://babbaj.github.io/maven/'
-        }
-    }
-
-    dependencies {
-        compileOnly "org.spongepowered:mixin:${project.mixin_version}"
-        compileOnly "org.ow2.asm:asm:${project.asm_version}"
-
-        implementation "dev.babbaj:nether-pathfinder:${project.nether_pathfinder_version}"
-
-        implementation 'com.google.code.findbugs:jsr305:3.0.2'
-    }
-
-    unimined.minecraft(sourceSets.main, true) {
-        version rootProject.minecraft_version
-
-        mappings {
-            mojmap()
-        }
-    }
-
-    tasks.withType(JavaCompile).configureEach {
-        it.options.encoding = "UTF-8"
-
-        def targetVersion = project.java_version.toInteger()
-        if (JavaVersion.current().isJava9Compatible()) {
-            it.options.release = targetVersion
-        }
-    }
-}
-
-unimined.minecraft {
-    runs.off = true
-    defaultRemapJar = false
-}
-
-base {
-    archivesName = archivesName.get() + "-common"
-}
-
+plugins { id 'java' }
+group = 'dev.autostore'
+version = '26.2-autostore-2.6.7'
+java { toolchain { languageVersion = JavaLanguageVersion.of(25) }; withSourcesJar() }
+def locks = new groovy.json.JsonSlurper().parse(file('tools/dependencies.json'))
+def libraries = locks.collect { file('deps/' + it.name) } + [file('deps/orbit-0.2.4.jar')]
 sourceSets {
-    api {
-        compileClasspath += main.compileClasspath
-        runtimeClasspath += main.runtimeClasspath
-    }
     main {
-        compileClasspath += api.output
-        runtimeClasspath += api.output
+        java.srcDirs = ['src/api/java','src/main/java','src/launch/java','fabric/src/main/java','src/schematica_api/java']
+        resources.srcDirs = ['src/main/resources','src/launch/resources','fabric/src/main/resources']
     }
-    test {
-        compileClasspath += main.compileClasspath + main.runtimeClasspath + main.output
-        runtimeClasspath += main.compileClasspath + main.runtimeClasspath + main.output
-    }
-    launch {
-        compileClasspath += main.compileClasspath + main.runtimeClasspath + main.output
-        runtimeClasspath += main.compileClasspath + main.runtimeClasspath + main.output
-    }
-    schematica_api {
-        compileClasspath += main.compileClasspath
-        runtimeClasspath += main.runtimeClasspath
-    }
-    main {
-        compileClasspath += schematica_api.output
-        runtimeClasspath += schematica_api.output
-    }
+    test { java.srcDirs = ['src/test/java/dev'] }
 }
-
 dependencies {
-    testImplementation 'junit:junit:4.13.2'
+    compileOnly files(libraries)
+    testImplementation files('deps/junit-platform-console-standalone-1.12.2.jar')
+    testImplementation fileTree('deps') { include '*gson*.jar'; include 'asm*.jar' }
 }
-
+tasks.withType(JavaCompile).configureEach { options.compilerArgs += ['-proc:none', '-Xlint:unchecked'] }
+test {
+    useJUnitPlatform()
+    systemProperty 'autostore.runtimeJar', tasks.named('jar').get().archiveFile.get().asFile.absolutePath
+    systemProperty 'autostore.version', project.version.toString()
+}
+processResources {
+    inputs.property('modVersion', project.version.toString())
+    filesMatching('fabric.mod.json') { expand version: project.version }
+}
+def pathfinderJar = tasks.register('packagePathfinder', Jar) {
+    dependsOn 'verifyDependencies'
+    archiveFileName = 'nether-pathfinder-1.6-fabric.jar'
+    destinationDirectory = layout.buildDirectory.dir('bundled')
+    from(zipTree('deps/nether-pathfinder-1.6.jar')) { exclude 'META-INF/MANIFEST.MF' }
+    from('src/dependencyMetadata/nether-pathfinder')
+}
 jar {
-    from sourceSets.main.output, sourceSets.launch.output, sourceSets.api.output
+    exclude 'com/github/lunatrius/**', 'fi/dy/masa/**'
+    from('LICENSE') { rename { 'LICENSE-Baritone' } }
+    from('LICENSE-AutoStore')
+    from(pathfinderJar) { into 'META-INF/jars' }
 }
+tasks.withType(AbstractArchiveTask).configureEach { preserveFileTimestamps = false; reproducibleFileOrder = true }
+tasks.register('verifyDependencies') {
+    doLast {
+        locks.each { entry ->
+            def artifact=file('deps/'+entry.name)
+            if (!artifact.isFile()) throw new GradleException('Run python3 tools/bootstrap.py first.')
+            def actual=java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance(entry.sha256 ? 'SHA-256':'SHA-1').digest(artifact.bytes))
+            if(actual != (entry.sha256 ?: entry.sha1)) throw new GradleException('Dependency checksum mismatch: '+entry.name)
+        }
+    }
+}
+compileJava.dependsOn verifyDependencies
 
-javadoc {
-    options.addStringOption('Xwerror', '-quiet') // makes the build fail on travis when there is a javadoc error
-    options.linkSource true
-    options.encoding "UTF-8" // allow emoji in comments :^)
-    source = sourceSets.api.allJava
-    classpath += sourceSets.api.compileClasspath
-}
+tasks.named("test") { dependsOn tasks.named("jar") }

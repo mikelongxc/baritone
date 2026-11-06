@@ -52,6 +52,15 @@ public enum FasterWorldScanner implements IWorldScanner {
         return scanChunksInternal(ctx, filter, getChunkRange(ctx.playerFeet().x >> 4, ctx.playerFeet().z >> 4, maxSearchRadius), max);
     }
 
+    /** Mining-specific scan: excluded near hits must not hide the next loaded patch.
+     * Sequential traversal keeps the supplied CalculationContext on its owning scan thread. */
+    public List<BlockPos> scanEligibleChunkRadius(IPlayerContext ctx,BlockOptionalMetaLookup filter,int max,int radius,
+                                                  java.util.function.Predicate<BlockPos> acceptable) {
+        if(radius<0)throw new IllegalArgumentException("chunkRange must be >= 0");
+        return SearchCandidates.take(getChunkRange(ctx.playerFeet().x >> 4,ctx.playerFeet().z >> 4,radius).stream()
+            .flatMap(p -> scanChunkInternal(ctx,filter,p)),acceptable,max);
+    }
+
     @Override
     public List<BlockPos> scanChunk(IPlayerContext ctx, BlockOptionalMetaLookup filter, ChunkPos pos, int max, int yLevelThreshold) {
         Stream<BlockPos> stream = scanChunkInternal(ctx, filter, pos);
