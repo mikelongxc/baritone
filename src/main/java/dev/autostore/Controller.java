@@ -46,6 +46,7 @@ public final class Controller implements Loop.Port {
     public final Loop loop = new Loop(this);
     public final MiningTools miningTools=new MiningTools(this);
     private final MiningRecovery recovery=new MiningRecovery(this);
+    private final MeteorReconnect meteorReconnect=new MeteorReconnect(this);
     private final dev.autostore.platform.IdleSleepGuard sleepGuard=new dev.autostore.platform.IdleSleepGuard();
     private final RuntimeTrace runtimeTrace=new RuntimeTrace(FabricLoader.getInstance().getConfigDir().resolve("autostore"),ProcessHandle.current().pid());
     private int restoreScreenKind;
@@ -59,6 +60,7 @@ public final class Controller implements Loop.Port {
     private final Set<Integer> combatDamageSlots = new HashSet<>();
     private long combatUntil;
     private BlockOptionalMetaLookup savedFilter;
+    private int savedQuantity;
     private NativeJob nativeJob=NativeJob.NONE;
     private final ClearAreaInventory clearInventory=new ClearAreaInventory();
     private Snapshot pendingClick;
@@ -69,7 +71,7 @@ public final class Controller implements Loop.Port {
     public boolean toolJobActive(){return nativeJob.active(baritone().getMineProcess().isActive(),baritone().getBuilderProcess().isActive());}
     public boolean clearing(){return nativeJob==NativeJob.CLEAR_AREA;}
     public String toolStatus(){return miningTools.status();}
-    public String recoveryStatus(){return recovery.status();}
+    public String recoveryStatus(){return meteorReconnect.pending()?"Recovery: waiting for Meteor reconnect and fresh inventory":recovery.status();}
     private boolean manuallyPaused;
     private IBaritoneProcess cooperativePause, storageProcess;
     private volatile boolean pathFailed;
@@ -160,6 +162,7 @@ public final class Controller implements Loop.Port {
         loop.reason = "Ready; run #mine minecraft:sand";
     }
     public void disarm() {
+        meteorReconnect.cancel();
         if (armed || loop.active()) loop.pause("Disarmed by user");
         require(stopped(), "Pathing is still stopping; try disarm again shortly");
         armed = false; releaseSettings();
@@ -176,6 +179,7 @@ public final class Controller implements Loop.Port {
     public void observeNativeMine(int quantity,BlockOptionalMetaLookup filter) {
         if(filter==null || !baritone().getMineProcess().isActive()) return;
         nativeJob=NativeJob.MINE;miningTools.begin();
+        savedFilter=filter;savedQuantity=quantity;
         if(quantity!=0)return;
         try { observeFilter(filter); }
         catch(RuntimeException e) {
@@ -206,6 +210,7 @@ public final class Controller implements Loop.Port {
     }
     /** Runs before any builder replacement, including non-clearing builds. */
     public void beforeNativeBuild() {
+        meteorReconnect.cancel();
         recovery.cancel();startupContainer=null;
         manuallyPaused=false;miningTools.reset();
         if(loop.active())loop.pause("Replaced by a new native job");
@@ -258,14 +263,18 @@ public final class Controller implements Loop.Port {
     }
     public boolean manuallyPaused() { return manuallyPaused; }
     public void manualPause() {
+        meteorReconnect.cancel();
         recovery.cancel();
-        if (loop.active()) { manuallyPaused = true; loop.yieldForActivity(now()); }
+        manuallyPaused = true;
+        if (loop.active()) loop.yieldForActivity(now());
     }
+    public void resumeUnsupervisedMine(){manuallyPaused=false;}
     public boolean manualResume() {
         if (!manuallyPaused || !loop.active()) return false;
         manuallyPaused=false;return true;
     }
     public void manualStop() {
+        meteorReconnect.cancel();
         recovery.cancel();
         manuallyPaused = false;miningTools.reset();
         if (armed || loop.active()) emergency("Stopped by #stop");
@@ -284,6 +293,7 @@ public final class Controller implements Loop.Port {
     }
     @EventHandler(priority = EventPriority.LOWEST) private void tick(TickEvent.Pre event) {
         traceRuntime();
+        if(meteorReconnect.tick())return;
         finishStartupContainer();
         if(recovery.tick()) {
             if(!recovery.pending() && !cooperativeJob())sleepGuard.close();
@@ -323,7 +333,35 @@ public final class Controller implements Loop.Port {
             path.isPathing(),path.getInProgress().isPresent(),pathFailed,ownsScreen,travelProgressCounter,fullSnapshotRevision));
     }
     @EventHandler private void left(GameLeftEvent event) {
+        if(meteorReconnect.pending())return;
         if (armed) { interrupted = true; emergency("Disconnected; manual reconciliation required"); }
+    }
+    /** Called at disconnect HEAD, before native mining and the old world are torn down. */
+    public void beforeDisconnect(net.minecraft.client.gui.screens.Screen next,boolean transferring) {
+        if(recovery.pending())return; // our deliberate recovery already owns its own ticket
+        boolean automatic=next instanceof net.minecraft.client.gui.screens.DisconnectedScreen;
+        if(mc.player==null || mc.level==null) {
+            // ConnectScreen.startConnecting itself calls disconnectWithProgressScreen
+            // with no world. That is preparation for Meteor's reconnect, not user cancellation.
+            return;
+        }
+        boolean eligible=ReconnectResume.eligible(meteorReconnect.enabled(),automatic,transferring,
+            nativeJob==NativeJob.MINE && savedFilter!=null && baritone().getMineProcess().isActive(),
+            manuallyPaused,miningTools.stopPending(),recovery.pending());
+        if(!eligible || mc.getCurrentServer()==null || mc.getSingleplayerServer()!=null || !mc.player.isAlive()) {
+            meteorReconnect.cancel();return;
+        }
+        boolean storageFirst=cooperativeJob() && loop.state!=Loop.State.MINING;
+        meteorReconnect.capture(new ReconnectResume.Job(scope(),savedFilter.blocks().stream()
+            .map(baritone.api.utils.BlockOptionalMeta::asCommandArgument).toList(),savedQuantity,storageFirst));
+        // The new server session owns inventory truth. Discard old window IDs and
+        // speculative clicks; do not close/replay anything on the disconnected socket.
+        armed=false;interrupted=true;loop.state=Loop.State.PAUSED;
+        loop.reason="Waiting for Meteor Auto Reconnect";travelGoal=null;hookStopReason=null;
+        ownsScreen=false;snapshot=null;clearTransfer();startupContainer=null;
+        restoreScreenKind=0;restoreMapScreen=null;combatUntil=0;combatReturnSlot=-1;combatSwordSlot=-1;
+        miningTools.reset();nativeJob=NativeJob.NONE;releaseSettings();sleepGuard.close();
+        baritone().getPathingBehavior().cancelEverything();
     }
     @EventHandler(priority = EventPriority.LOWEST) private void sendingMiningPacket(PacketEvent.Send event) {
         if(!mc.isSameThread() || !miningTools.active() || !(event.packet instanceof ServerboundPlayerActionPacket packet))return;
@@ -340,6 +378,7 @@ public final class Controller implements Loop.Port {
         if (armed && loop.active() && (event.packet instanceof ClientboundRespawnPacket)) interrupted = true;
     }
     public void emergency(String reason) {
+        meteorReconnect.cancel();
         recovery.cancel();
         try { loop.pause(reason); } catch (RuntimeException ignored) { loop.state = Loop.State.FAULTED; loop.reason = "Stopped; checkpoint could not be written"; }
         finally {sleepGuard.close();releaseSettings();}
@@ -404,7 +443,7 @@ public final class Controller implements Loop.Port {
     }
     public boolean allowNativeMiningTool(ItemStack stack) { return (!miningTools.active() || safeSpare(stack)) && (!storageRouting() || usableTool(stack)); }
     public boolean storageRouting() { return armed && Cooperation.storageOwnsPath(loop.state); }
-    public boolean keepRunningInMenus() {return dev.autostore.trail.TrailController.INSTANCE!=null && dev.autostore.trail.TrailController.INSTANCE.background() || recovery.pending() || cooperativeJob() && !manuallyPaused;}
+    public boolean keepRunningInMenus() {return dev.autostore.trail.TrailController.INSTANCE!=null && dev.autostore.trail.TrailController.INSTANCE.background() || meteorReconnect!=null && meteorReconnect.pending() || recovery.pending() || cooperativeJob() && !manuallyPaused;}
     public boolean canMonitorMine() {
         return canMonitorDamageRecovery() && !busy() && !nearlyFull();
     }
@@ -777,7 +816,9 @@ public final class Controller implements Loop.Port {
         return true;
     }
     /** Called AFTER vanilla applies a full server content packet on the client thread. */
-    public void onSnapshot(ClientboundContainerSetContentPacket packet) {
+    public void onSnapshot(ClientboundContainerSetContentPacket packet,net.minecraft.client.multiplayer.ClientPacketListener source) {
+        if(source!=mc.getConnection())return;
+        meteorReconnect.snapshot(packet);
         miningTools.onInventorySnapshot(packet);
         if(!armed || !loop.active() || !ownsScreen || mc.player==null || packet.containerId()==0 || packet.containerId()==lastClosedId) return;
         if(packet.containerId()!=mc.player.containerMenu.containerId) return;

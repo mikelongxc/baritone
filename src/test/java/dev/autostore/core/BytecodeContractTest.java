@@ -11,9 +11,28 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Checks actual pinned binaries without starting a game or accessing a server. Not a runtime load test. */
 class BytecodeContractTest {
+    @Test void meteorReconnectCapturesBeforeTeardownAndNeverInitiatesAConnectionOrReplaysClicks() throws Exception {
+        ClassNode hook=read(Files.readAllBytes(Path.of("build/classes/java/main/dev/autostore/mixin/ReconnectMixin.class")));
+        AnnotationNode mixin=annotations(hook.visibleAnnotations,hook.invisibleAnnotations).stream().filter(a->a.desc.endsWith("/Mixin;")).findFirst().orElseThrow();
+        assertEquals(500,value(mixin,"priority"));
+        ClassNode controller=read(Files.readAllBytes(Path.of("build/classes/java/main/dev/autostore/Controller.class")));
+        MethodNode disconnect=controller.methods.stream().filter(m->m.name.equals("beforeDisconnect")).findFirst().orElseThrow();
+        Set<String> disconnectCalls=calls(disconnect);
+        assertTrue(disconnectCalls.containsAll(Set.of("eligible","capture","clearTransfer","cancelEverything")));
+        assertFalse(disconnectCalls.contains("closeContainer"),"Old session must not send another menu action during teardown");
+        int index=0,capture=-1,cancel=-1;
+        for(AbstractInsnNode i:disconnect.instructions){if(i instanceof MethodInsnNode c){if(c.name.equals("capture"))capture=index;if(c.name.equals("cancelEverything"))cancel=index;}index++;}
+        assertTrue(capture>=0 && cancel>capture,"Save the native target before cancellation discards it");
+        for(String name:List.of("manualStop","manualPause","beforeNativeBuild","emergency","disarm"))
+            assertTrue(calls(controller.methods.stream().filter(m->m.name.equals(name)).findFirst().orElseThrow()).contains("cancel"));
+        ClassNode reconnect=read(Files.readAllBytes(Path.of("build/classes/java/main/dev/autostore/MeteorReconnect.class")));
+        Set<String> all=new HashSet<>();reconnect.methods.forEach(m->all.addAll(calls(m)));
+        assertTrue(all.containsAll(Set.of("mineByName","retryStorageAfterRecovery","poll")));
+        for(String forbidden:List.of("startConnecting","useItemOn","handleContainerInput","closeContainer"))assertFalse(all.contains(forbidden));
+    }
     @Test void allRequiredMixinSelectorsAndCallbackSignaturesMatchPinnedJars() throws Exception {
         int checked=0;
-        for(String mixin:List.of("BreakGuardMixin","ContainerSnapshotMixin","AutoEatMixin","AutoToolMixin","AutoToolAccess","KillAuraMixin","InteractionGuardMixin","BackgroundMiningMixin","BackgroundFpsMixin","PauseMenuMixin","BackgroundFrameMixin","BackgroundContainerMixin","BackgroundMouseMixin")) {
+        for(String mixin:List.of("BreakGuardMixin","ContainerSnapshotMixin","AutoEatMixin","AutoToolMixin","AutoToolAccess","KillAuraMixin","InteractionGuardMixin","BackgroundMiningMixin","BackgroundFpsMixin","PauseMenuMixin","BackgroundFrameMixin","BackgroundContainerMixin","BackgroundMouseMixin","ReconnectMixin")) {
             ClassNode source=read(Files.readAllBytes(Path.of("build/classes/java/main/dev/autostore/mixin/"+mixin+".class")));
             AnnotationNode annotation=annotations(source.visibleAnnotations,source.invisibleAnnotations).stream().filter(a -> a.desc.endsWith("/Mixin;")).findFirst().orElseThrow();
             @SuppressWarnings("unchecked") List<Type> targets=(List<Type>)value(annotation,"value");
@@ -37,7 +56,7 @@ class BytecodeContractTest {
                 }
             }
         }
-        assertEquals(19,checked);
+        assertEquals(20,checked);
     }
     @Test void autoToolInvokerAndKillAuraRedirectMatchThePinnedMeteorBytecode() throws Exception {
         try(JarFile jar=new JarFile("deps/meteor.jar")) {

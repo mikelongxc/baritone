@@ -1,8 +1,14 @@
-# Baritone AutoStore 2.8.0-beta.2 — Minecraft 26.3
+# Baritone AutoStore 2.8.0-beta.3 — Minecraft 26.3
 
 A source fork of Baritone for Meteor 26.3-15. Baritone owns mining and selection clearing; AutoStore temporarily takes control to deposit items in registered chests or placed shulkers. Existing registrations remain compatible.
 
-Download the runtime jar from [Releases](https://github.com/mikelongxc/baritone/releases/tag/autostore-2.8.0-beta.2). See [validation results](VALIDATION.md) and [upstream provenance](UPSTREAM.md).
+Download the runtime jar from [Releases](https://github.com/mikelongxc/baritone/releases/tag/autostore-2.8.0-beta.3). See [validation results](VALIDATION.md) and [upstream provenance](UPSTREAM.md).
+
+## Meteor Auto Reconnect
+
+Keep Meteor's **Auto Reconnect** enabled. If the server disconnects an active `#mine`, the same target list and quantity resume automatically after rejoining the same server, player and dimension, receiving fresh inventory contents, and one second of readiness. AutoStore starts again with the saved chest registrations. If storage was interrupted, it deposits the remaining outputs before continuing mining. Old window IDs and pending clicks are discarded; the new server inventory is authoritative.
+
+Meteor controls its normal reconnect countdown and retries. No extra AutoStore setting is required. Explicit `#stop`, `#pause`, tool-protection stops, manual Disconnect, returning to the server list/title, disabling Auto Reconnect, or starting a replacement job cancel this handoff. It is kept in memory for the running client, not across a full game restart. This handoff covers `#mine` (including finite quantities); it does not reconstruct selection/build or trail-flight jobs after disconnect.
 
 ## Storage resume and background maintenance
 
@@ -19,7 +25,7 @@ Background managed chest/shulker transactions now keep the server menu open with
 ## Install and use
 
 1. Fully quit every Minecraft instance. A running game keeps its loaded jar even if you replace or trash that file.
-2. Keep Meteor 26.3-15, Fabric API and your other compatible mods. Install only `baritone-autostore-26.3-autostore-2.8.0-beta.2.jar`; remove older Baritone/AutoStore runtime jars. Do not install the sources jar or source ZIP.
+2. Keep Meteor 26.3-15, Fabric API and your other compatible mods. Install only `baritone-autostore-26.3-autostore-2.8.0-beta.3.jar`; remove older Baritone/AutoStore runtime jars. Do not install the sources jar or source ZIP.
 3. Launch Minecraft 26.3 with Java 25 and Fabric Loader 0.19.5 or newer.
 4. Look at each chest or already placed shulker from a reachable standing position and run `#store`. Previously saved chests do not need re-registration.
 5. Run `#mine minecraft:sand`, or mark a selection with `#sel pos1` and `#sel pos2`, then run `#sel ca`.
@@ -38,7 +44,7 @@ Commands:
 
 A screen is no longer a fatal startup validation error. The managed job remains armed while a blocking screen is open and continues automatically when it clears. If a new #mine or #sel ca begins with an ordinary chest/placed shulker already open, AutoStore captures that exact menu and closes it automatically once the cursor is empty. It does not transfer/drop the cursor stack, close a replacement menu you subsequently open, or close while manually paused or a transaction is pending. Inventory, Esc and Xaero retain their passive-screen behavior. Other container types wait instead of being closed automatically.
 
-For an old session already stuck at `PAUSED: Close the other container or blocking screen before starting`, close the blocking screen and rerun the same #mine command. The startup fix takes effect after a full client restart onto 2.8.0-beta.2.
+For an old session already stuck at `PAUSED: Close the other container or blocking screen before starting`, close the blocking screen and rerun the same #mine command. The startup fix takes effect after a full client restart onto 2.8.0-beta.3.
 
 ## Deposits and background operation
 
@@ -84,7 +90,7 @@ For an active, unlimited `#mine` supervised by storage:
 - Ordinary stationary/no-item progress refreshes the native route/search after **15 seconds**, then requests relog after another **15 seconds**. An unsafe-to-cancel path or a false client on-ground flag no longer prevents the watchdog from counting time. Route cancellation itself still respects native path safety.
 - Brief eating/combat/tool waits freeze the timers instead of erasing them. Explicit pause/stop or a new job resets them. No recovery runs during a deposit or tool swap.
 - A **two-second** reconnect screen provides Cancel/Esc. After rejoin and three seconds of chunk settling, the job resumes using the server's actual position and inventory. Position/inventory rollback does not prompt for inspection. Same player/server/dimension, a living player and an empty cursor are still required. The tool guard checks the new inventory before allowing mining.
-- Continued stalls can request another relog automatically, with a minimum **60-second** interval between attempts. Cooldown no longer faults/stops the job. Rejected login, login timeout, explicit cancellation, a different world/player, death, and unrelated disconnects do not blindly restart a job.
+- Continued stalls can request another relog automatically, with a minimum **60-second** interval between attempts. Cooldown no longer faults/stops the job. Rejected login, login timeout, explicit cancellation, a different world/player, death, and unrelated disconnects do not blindly restart a job. Meteor Auto Reconnect has the separate opt-in handoff described above.
 
 `#store status` includes the idle/desync timers, retry cooldown and exact eligibility blocker without coordinates. Tool waits, storage state, cursor/screen holds, explicit pause and native mining ending are distinguished. Detection is heuristic; it does not identify an anti-cheat plugin. Server queues/authentication plugins and third-party tick suspension are not automated. Selection clearing retains storage/tool support but not automatic relog/restart.
 

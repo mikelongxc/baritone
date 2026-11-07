@@ -20,7 +20,7 @@ public abstract class ContainerSnapshotMixin {
     }
     @Inject(method="handleContainerContent",at=@At("TAIL"))
     private void afterServerContent(ClientboundContainerSetContentPacket packet,CallbackInfo ci) {
-        if(Controller.INSTANCE!=null) Controller.INSTANCE.onSnapshot(packet);
+        if(Controller.INSTANCE!=null) Controller.INSTANCE.onSnapshot(packet,(ClientPacketListener)(Object)this);
         if(dev.autostore.trail.TrailController.INSTANCE!=null)dev.autostore.trail.TrailController.INSTANCE.onSnapshot(packet);
     }
 }

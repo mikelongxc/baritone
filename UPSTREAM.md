@@ -8,7 +8,7 @@ Meteor binary: 26.3-15; exact hash and dependency provenance in DEPENDENCIES.md.
 
 This is an unofficial development fork. It builds actual Baritone source into a single Fabric replacement jar with a Meteor addon entrypoint. AutoStore additions originated in the earlier 1.x addon. Existing registrations migrate without old quarry/corridor restrictions.
 
-## Final behavior in 2.8.0-beta.2 — November 7, 2026
+## Final behavior in 2.8.0-beta.3 — November 7, 2026
 
 - Preserve native MineProcess and BuilderProcess ownership during temporary storage navigation. Only explicit clear-area selections opt the builder into storage. New builder jobs terminate previous supervision before replacing the schematic.
 - Preserve equipment and initial selection-clearing supplies, support mixed new drops, nearest registered storage, fallback/cooldowns, and coordinate-free status.
@@ -16,7 +16,7 @@ This is an unofficial development fork. It builds actual Baritone source into a 
 - Extend the 5% reserve to selection clearing, add tick-level worn-tool checks and explicit selected-slot synchronization, and require an authoritative inventory snapshot for a spare-tool swap. Track unconfirmed wear conservatively and hard-stop below 5% or when no suitable spare exists.
 - Keep passive inventory/Esc/Xaero screens and suppress focus-loss pause. Raise effective vanilla background FPS to at least 20 during the job; retain the process-scoped macOS idle-sleep assertion.
 - Extend eligibility-before-quota scanning from sand to all mining targets. Retain the sand elevation and empty-goal fixes.
-- Add user-requested no-progress recovery: refresh native route/search, then one deliberate relog if still stuck. A separate server-progress heuristic detects repeated unsuccessful mining/corrections despite client movement and relogs directly. Recovery alone may restart the saved mine target after verified rejoin. Storage never issues mining/build commands. Explicit stops and unrelated disconnects never auto-resume. Deliberate recovery now accepts server inventory/position rollback.
+- Add user-requested no-progress recovery: refresh native route/search, then one deliberate relog if still stuck. A separate server-progress heuristic detects repeated unsuccessful mining/corrections despite client movement and relogs directly. Recovery alone may restart the saved mine target after verified rejoin. Storage never issues mining/build commands. Explicit stops never auto-resume. Unexpected disconnects resume only through the enabled Meteor Auto Reconnect handoff described below. Deliberate recovery now accepts server inventory/position rollback.
 - Retain the 2.1 nested Nether Pathfinder discovery fix and 2.2 Gradle resource-version tracking.
 - 2.6.1: count unfinished mining attempts; use 10-second desync / 15+15-second idle windows and a two-second reconnect countdown; freeze short activity pauses; retry after cooldown rather than fault. Expose coordinate-free recovery status.
 - 2.6.1: reconcile changed storage from a new full server snapshot instead of faulting; wait/refresh stale opening contents; preserve protected-item selection on every retry.
@@ -33,6 +33,7 @@ This is an unofficial development fork. It builds actual Baritone source into a 
 - 2.8.0-beta.1: keep managed background server containers headless; omit native cursor resync for unfocused jobs; send actual facing rotation before storage interactions.
 - 2.8.0-beta.2: refresh native mining search after completed deposits, invalidating stale scan results and rejected targets while retaining the target and quantity. Leave selection clearing unchanged.
 - 2.8.0-beta.2: retain ClientLevel world/lighting maintenance in the background frame bypass; add bounded coordinate-free diagnostic histories per process.
+- 2.8.0-beta.3: capture active native mining before Meteor disconnect teardown; restore the target/quantity after same-scope rejoin and fresh inventory, with storage first for interrupted deposits. Meteor owns reconnection timing. Preserve manual stops/pauses and tool errors; ignore old-session snapshots and discard old menu transactions.
 - Expand tests and isolated loader probes. Actual gameplay and reconnects remain untested.
 
 Original Baritone sources remain LGPL-3.0-or-later; see LICENSE (included in the jar as LICENSE-Baritone). AutoStore additions are GPL-3.0-only; see LICENSE-AutoStore. The combined distribution includes both notices and complete corresponding source. Original author notices are retained. The nested Nether Pathfinder jar retains its notices/resources. Minecraft, Meteor and Xaero are external dependencies and are not redistributed here.

@@ -94,6 +94,7 @@ public class ExecutionControlCommands {
                     return;
                 }
                 paused[0] = true;
+                if(dev.autostore.Controller.INSTANCE!=null)dev.autostore.Controller.INSTANCE.manualPause();
                 if(dev.autostore.Controller.INSTANCE!=null)dev.autostore.Controller.INSTANCE.miningTools.manualPause(true);
                 logDirect("Paused");
             }
@@ -136,6 +137,7 @@ public class ExecutionControlCommands {
                 }
                 paused[0] = false;
                 if(dev.autostore.Controller.INSTANCE!=null)dev.autostore.Controller.INSTANCE.miningTools.manualPause(false);
+                if(dev.autostore.Controller.INSTANCE!=null)dev.autostore.Controller.INSTANCE.resumeUnsupervisedMine();
                 logDirect("Resumed");
             }
 

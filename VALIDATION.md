@@ -1,13 +1,21 @@
-# AutoStore 2.8.0-beta.2 validation — 2026-11-07
+# AutoStore 2.8.0-beta.3 validation — 2026-11-07
 
 ## Verified
 
 - Java 25 / Gradle 9.5.0 build against Minecraft 26.3, Meteor 26.3-15, Fabric Loader 0.19.5. All 128 pinned dependency artifacts verified.
-- 175 JUnit tests pass. Storage coverage includes full/partial/alternate chests, transaction confirmation, changed contents, retained pending transfers, route fallback, exhausted-storage relog eligibility and post-rejoin storage priority. Tool tests cover the rounded 5% reserve, 98/2031 netherite, unconfirmed wear and inventory spares. Recovery, passive screens, native job ownership and packaging are also covered.
+- 185 JUnit tests pass. Storage coverage includes full/partial/alternate chests, transaction confirmation, changed contents, retained pending transfers, route fallback, exhausted-storage relog eligibility and post-rejoin storage priority. Tool tests cover the rounded 5% reserve, 98/2031 netherite, unconfirmed wear and inventory spares. Recovery, passive screens, native job ownership and packaging are also covered.
 - Isolated Fabric/Mixin probe passes with Meteor alone and with Sodium 0.9.2, Fabric API 0.165.2, Trouser Streak 1.7.0, Xaero World Map 1.47.2, Minimap 26.6.2 and XaeroPlus 2.37.2.
 - A second expanded probe passes with every installed top-level mod except ViaFabricPlus (16 total, including AutoStore in place of stock Baritone). This also includes Distant Horizons, Continuity, Freecam, Mod Menu and the remaining utility mods.
 - Probes transform relevant Minecraft/Meteor/Baritone classes, including ComeCommand (the target missing from the incompatible standalone build). Exercise the actual transformed unfocused rendering bypass and focused/paused/disarmed fallback, actual ItemStack durability methods, vanilla no-slot PICKUP, native exploration policy, exact dependency hashes and macOS ARM64 native pathfinder capability.
 - Twelve synthetic chunk cases invoke the actual NetherPathfinderContext.writeChunkData. Lava, netherrack and air at section indices 0, 1, 7 and 23 verify all occupancy bytes, untouched adjacent sections and buffer guards. A separate test jar restoring the original two-byte calculation fails on lava, confirming that this regression detects the bug.
+
+## Beta 3 reconnect checks
+
+- Nine reconnect state tests cover exactly-once resume, multiple targets, finite quantities, storage priority, stale/old-connection snapshots, repeated login attempts, chunk/cursor readiness, scope changes, explicit cancellation, long network waits and capture eligibility.
+- A bytecode contract verifies capture-before-cancel, explicit-stop cancellation, and that the reconnect coordinator never starts a connection or replays container actions. All 20 required injection selectors match the pinned binaries.
+- The expanded isolated loader transforms the actual Meteor AutoReconnect/DisconnectedScreen and new controller classes. Its exported Minecraft bytecode verifies that capture executes before Meteor GameLeftEvent and vanilla teardown. An initial ordering that would erase the job was rejected by this check and corrected before installation.
+- An actual controller fixture confirms that ConnectScreen preparation with no world preserves the handoff, while explicit cancellation clears it. The previous draft that erased this ticket fails the regression as expected.
+- Live server disconnect/rejoin behavior is not exercised; all checks use isolated classes/fixtures and local bytecode. Scope and target tickets remain in memory only.
 
 ## Beta 2 regression checks
 

@@ -1,9 +1,9 @@
-Baritone AutoStore 2.8.0-beta.2 — Minecraft 26.3
+Baritone AutoStore 2.8.0-beta.3 — Minecraft 26.3
 Validation date: 2026-11-07
 Build: PASS (Java 25 / Gradle 9.5.0)
-Total: 175 tests, zero failures/errors/skips
+Total: 185 tests, zero failures/errors/skips
 dev.autostore.core.BatchTransferTest: 8 tests; PASS
-dev.autostore.core.BytecodeContractTest: 19 tests; PASS
+dev.autostore.core.BytecodeContractTest: 20 tests; PASS
 dev.autostore.core.CooperationTest: 7 tests; PASS
 dev.autostore.core.DamageWatchTest: 10 tests; PASS
 dev.autostore.core.DepotApproachTest: 3 tests; PASS
@@ -13,6 +13,7 @@ dev.autostore.core.LoopTest: 34 tests; PASS
 dev.autostore.core.PackagingTest: 1 tests; PASS
 dev.autostore.core.PolicyTest: 6 tests; PASS
 dev.autostore.core.ProfileStoreTest: 7 tests; PASS
+dev.autostore.core.ReconnectResumeTest: 9 tests; PASS
 dev.autostore.core.RuntimeTraceTest: 3 tests; PASS
 dev.autostore.core.SearchCandidatesTest: 10 tests; PASS
 dev.autostore.core.ToolReserveTest: 12 tests; PASS
@@ -34,6 +35,10 @@ Real 26.3 chunk adapter and installed Trouser Streak 1.7.0 field contract: PASS
 Actual shulker templates: rockets, mixed contents and empty recovery: PASS
 12 lava/solid/air chunk-packing cases: PASS
 Existing AutoStore multi-chest/recovery/tool/background and packaging regressions: PASS
-Live gameplay, trail flight, refuel/pickup and exact reported focus stall: NOT VERIFIED
+Reconnect capture ordering ahead of Meteor GameLeftEvent and vanilla teardown: PASS
+Actual reconnect-preparation handoff retention and explicit cancellation fixture: PASS
+Negative control that clears handoff during reconnect preparation fails as expected: PASS
+Same-scope inventory-confirmed reconnect state, retries, quantity and cancellation cases: PASS
+Live reconnect, gameplay, trail flight, refuel/pickup and exact reported focus stall: NOT VERIFIED
 No live server was accessed. Local existing JVM stacks were inspected read-only.
 See VALIDATION.md and TRAIL.md for limits.

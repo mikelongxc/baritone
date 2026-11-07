@@ -15,7 +15,8 @@
     "PauseMenuMixin",
     "BackgroundFrameMixin",
     "BackgroundContainerMixin",
-    "BackgroundMouseMixin"
+    "BackgroundMouseMixin",
+    "ReconnectMixin"
   ],
   "injectors": {
     "defaultRequire": 1

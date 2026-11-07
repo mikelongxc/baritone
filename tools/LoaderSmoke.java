@@ -20,6 +20,9 @@ public final class LoaderSmoke {
             "dev.autostore.Controller",
             "dev.autostore.MiningTools",
             "dev.autostore.MiningRecovery",
+            "dev.autostore.MeteorReconnect",
+            "meteordevelopment.meteorclient.systems.modules.misc.AutoReconnect",
+            "net.minecraft.client.gui.screens.DisconnectedScreen",
             "dev.autostore.core.DamageWatch",
             "dev.autostore.MiningRecovery$RecoveryScreen",
             "dev.autostore.ContainerRefresh",
@@ -165,6 +168,7 @@ public final class LoaderSmoke {
         fixtureField(controllerFixture,"recovery",allocate.invoke(unsafe,Class.forName("dev.autostore.MiningRecovery",true,target)));
         var instance=controllerClass.getField("INSTANCE");Object oldInstance=instance.get(null);instance.set(null,controllerFixture);
         try {
+            checkReconnectPreparation(target,unsafe,allocate,mcFixture,controllerFixture);
             var frame=mcClass.getMethod("renderFrame",boolean.class);
             for(String phase:new String[]{"MINING","QUIESCING","RETURNING","OPENING","DEPOSITING","REOPENING","VERIFYING","RESUMING","WAITING_STORAGE"}) {
                 var executed=new java.util.concurrent.atomic.AtomicInteger();lightUpdates.add(executed::incrementAndGet);
@@ -240,6 +244,25 @@ public final class LoaderSmoke {
         check.invoke(null);
         System.out.println("SMOKE_OK runtime dependency checksums");
         System.out.println("SMOKE_COMPLETE: no Minecraft client, world, account, or network session started.");
+    }
+    private static void checkReconnectPreparation(ClassLoader target,Object unsafe,java.lang.reflect.Method allocate,Object mc,Object controller)throws Exception {
+        Class<?> coordinatorClass=Class.forName("dev.autostore.MeteorReconnect",true,target);
+        Object coordinator=allocate.invoke(unsafe,coordinatorClass);
+        Class<?> ticketClass=Class.forName("dev.autostore.core.ReconnectResume",true,target);
+        Object ticket=ticketClass.getConstructor().newInstance();
+        Class<?> jobClass=Class.forName("dev.autostore.core.ReconnectResume$Job",true,target);
+        Object job=jobClass.getConstructor(String.class,java.util.List.class,int.class,boolean.class)
+            .newInstance("synthetic",java.util.List.of("minecraft:sand"),0,true);
+        ticketClass.getMethod("capture",jobClass,Object.class).invoke(ticket,job,new Object());
+        fixtureField(coordinator,"handoff",ticket);fixtureField(controller,"meteorReconnect",coordinator);fixtureField(controller,"mc",mc);
+        // Vanilla ConnectScreen.startConnecting calls a second disconnect with a
+        // progress screen and no player. It must not erase the pending handoff.
+        controller.getClass().getMethod("beforeDisconnect",Class.forName("net.minecraft.client.gui.screens.Screen",true,target),boolean.class)
+            .invoke(controller,null,false);
+        if(!Boolean.TRUE.equals(ticketClass.getMethod("pending").invoke(ticket)))throw new AssertionError("Reconnect preparation erased the pending mining job");
+        coordinatorClass.getMethod("cancel").invoke(coordinator);
+        if(Boolean.TRUE.equals(ticketClass.getMethod("pending").invoke(ticket)))throw new AssertionError("Explicit cancellation did not clear reconnect job");
+        System.out.println("SMOKE_OK reconnect preparation preserves mining handoff; explicit cancellation clears it");
     }
     private static void checkMiningResume(ClassLoader target,Object unsafe,java.lang.reflect.Method allocate)throws Exception {
         Class<?> minerClass=Class.forName("baritone.process.MineProcess",true,target);

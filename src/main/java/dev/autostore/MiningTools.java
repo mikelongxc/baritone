@@ -51,6 +51,7 @@ public final class MiningTools {
     public boolean active(){return enabled && mc.player!=null && mc.level!=null && mc.player.isAlive() && !mc.player.isCreative() && owner.toolJobActive();}
     public boolean waiting(){return active() && (waiting || checkingWear || settleTicks>0);}
     public boolean swapping(){return active() && settleTicks>0;}
+    public boolean stopPending(){return hardStopQueued;}
     public String reason(){return reason;}
     public String status(){
         if(mc.player==null)return "Tool guard: no player";
