@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class AutoEatMixin {
     @Inject(method="onTick",at=@At("HEAD"),cancellable=true)
     private void coordinateEating(TickEvent.Pre event,CallbackInfo ci) {
+        if(dev.autostore.trail.TrailController.INSTANCE!=null && dev.autostore.trail.TrailController.INSTANCE.deferEquipmentAutomation()){ci.cancel();return;}
         Controller c=Controller.INSTANCE;
         if(c==null || !c.cooperativeJob()) return;
         AutoEat eat=(AutoEat)(Object)this;

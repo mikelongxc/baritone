@@ -32,6 +32,10 @@ public final class LoaderSmoke {
             "dev.autostore.Controller$2",
             "dev.autostore.StorageCommand",
             "dev.autostore.StoreCommand",
+            "dev.autostore.trail.TrailController",
+            "dev.autostore.trail.TrailCommand",
+            "dev.autostore.trail.TrouserTrail",
+            "net.minecraft.client.MouseHandler",
             "baritone.command.defaults.ExecutionControlCommands",
             "baritone.pathing.movement.MovementHelper",
             "baritone.behavior.InventoryBehavior",
@@ -156,7 +160,12 @@ public final class LoaderSmoke {
         var instance=controllerClass.getField("INSTANCE");Object oldInstance=instance.get(null);instance.set(null,controllerFixture);
         try {
             var frame=mcClass.getMethod("renderFrame",boolean.class);
-            frame.invoke(mcFixture,true);frame.invoke(mcFixture,true);
+            for(String phase:new String[]{"MINING","QUIESCING","RETURNING","OPENING","DEPOSITING","REOPENING","VERIFYING","RESUMING","WAITING_STORAGE"}) {
+                fixtureField(loopFixture,"state",stateClass.getField(phase).get(null));frame.invoke(mcFixture,true);
+            }
+            fixtureField(loopFixture,"state",stateClass.getField("DEPOSITING").get(null));
+            checkHeadlessMenu(target,unsafe,allocate,mcFixture,guiFixture,windowFixture,controllerFixture,fakePlayer,menu);
+            checkTrailAdapter(target);
             fixtureField(windowFixture,"focused",true);
             expectNativeRender(frame,mcFixture); // focused bot must keep normal rendering
             fixtureField(windowFixture,"focused",false);fixtureField(controllerFixture,"manuallyPaused",true);
@@ -212,6 +221,7 @@ public final class LoaderSmoke {
         System.out.println("SMOKE_OK sand/ore/legit policy, empty-target fallback, exploration height and vertical cost and location-free status");
         Class<?> context=Class.forName("baritone.process.elytra.NetherPathfinderContext", true, target);
         if (!supported.equals(context.getMethod("isSupported").invoke(null))) throw new AssertionError("Native capability mismatch");
+        checkTrailSupplyItems(target);
         checkFilledChunkPacking(target);
         System.out.println("SMOKE_OK Baritone startup pathfinder dependency and capability probe; supported="+supported);
         Class<?> gate = Class.forName("dev.autostore.DependencyGate", true, target);
@@ -220,6 +230,47 @@ public final class LoaderSmoke {
         check.invoke(null);
         System.out.println("SMOKE_OK runtime dependency checksums");
         System.out.println("SMOKE_COMPLETE: no Minecraft client, world, account, or network session started.");
+    }
+    private static Object supplyStack(ClassLoader target,String item,int count,java.util.Map<String,Object> extra)throws Exception {
+        Class<?> map=Class.forName("net.minecraft.core.component.DataComponentMap",true,target),builderClass=Class.forName("net.minecraft.core.component.DataComponentMap$Builder",true,target);
+        Class<?> component=Class.forName("net.minecraft.core.component.DataComponentType",true,target),components=Class.forName("net.minecraft.core.component.DataComponents",true,target);
+        Object builder=map.getMethod("builder").invoke(null);
+        var set=builderClass.getMethod("set",component,Object.class);
+        set.invoke(builder,components.getField("MAX_STACK_SIZE").get(null),item.contains("SHULKER")?1:64);
+        for(var entry:extra.entrySet())set.invoke(builder,components.getField(entry.getKey()).get(null),entry.getValue());
+        Object base=builderClass.getMethod("build").invoke(builder);
+        Class<?> patched=Class.forName("net.minecraft.core.component.PatchedDataComponentMap",true,target),holder=Class.forName("net.minecraft.core.Holder",true,target);
+        Class<?> itemClass=Class.forName("net.minecraft.world.item.Item",true,target),stack=Class.forName("net.minecraft.world.item.ItemStack",true,target);
+        Object itemValue=Class.forName("net.minecraft.world.item.Items",true,target).getField(item).get(null);
+        Object itemHolder=itemClass.getMethod("builtInRegistryHolder").invoke(itemValue);
+        // Bind synthetic defaults only in this isolated probe; ordinary clients load these from datapacks.
+        if(!Boolean.TRUE.equals(itemHolder.getClass().getMethod("areComponentsBound").invoke(itemHolder)))itemHolder.getClass().getMethod("bindComponents",map).invoke(itemHolder,base);
+        var constructor=stack.getDeclaredConstructor(holder,int.class,patched);constructor.setAccessible(true);
+        return constructor.newInstance(itemHolder,count,patched.getConstructor(map).newInstance(base));
+    }
+    private static void checkTrailSupplyItems(ClassLoader target)throws Exception {
+        Class<?> fireworks=Class.forName("net.minecraft.world.item.component.Fireworks",true,target);
+        Object flight=fireworks.getConstructor(int.class,java.util.List.class).newInstance(1,java.util.List.of());
+        Object rockets=supplyStack(target,"FIREWORK_ROCKET",64,java.util.Map.of("FIREWORKS",flight));
+        Object dirt=supplyStack(target,"DIRT",1,java.util.Map.of());
+        Class<?> container=Class.forName("net.minecraft.world.item.component.ItemContainerContents",true,target);
+        Object fuel=container.getMethod("fromItems",java.util.List.class).invoke(null,java.util.List.of(rockets));
+        Object mixed=container.getMethod("fromItems",java.util.List.class).invoke(null,java.util.List.of(rockets,dirt));
+        Object box=supplyStack(target,"SHULKER_BOX",1,java.util.Map.of("CONTAINER",fuel));
+        Object unsafeBox=supplyStack(target,"SHULKER_BOX",1,java.util.Map.of("CONTAINER",mixed));
+        Object empty=supplyStack(target,"SHULKER_BOX",1,java.util.Map.of());
+        Class<?> ctrl=Class.forName("dev.autostore.trail.TrailController",true,target),stack=Class.forName("net.minecraft.world.item.ItemStack",true,target);
+        var safe=ctrl.getDeclaredMethod("supplyBox",stack);safe.setAccessible(true);
+        var count=ctrl.getDeclaredMethod("boxRocketCount",stack);count.setAccessible(true);
+        if(!Boolean.TRUE.equals(safe.invoke(null,box)) || !Integer.valueOf(64).equals(count.invoke(null,box)))throw new AssertionError("Supply shulker must expose actual template contents");
+        if(!Boolean.FALSE.equals(safe.invoke(null,unsafeBox)))throw new AssertionError("Mixed valuable-item shulker must not be used as fuel");
+        if(!Boolean.TRUE.equals(safe.invoke(null,empty)) || !Integer.valueOf(0).equals(count.invoke(null,empty)))throw new AssertionError("Empty recovered box remains recognizable");
+        if(Boolean.getBoolean("autostore.smoke.xaero")) {
+            Class<?> detector=Class.forName("pwn.noobs.trouserstreak.modules.NewerNewChunks",false,target);
+            for(String field:new String[]{"newChunks","oldChunks","OldGenerationOldChunks","beingUpdatedOldChunks"})
+                if(!java.util.Set.class.isAssignableFrom(detector.getDeclaredField(field).getType()))throw new AssertionError("Trouser chunk adapter field changed");
+        }
+        System.out.println("SMOKE_OK real 26.3 shulker ItemStackTemplate contents, fuel count, mixed-item rejection and empty-box recovery");
     }
     private static void checkFilledChunkPacking(ClassLoader target) throws Exception {
         var unsafeField=sun.misc.Unsafe.class.getDeclaredField("theUnsafe");unsafeField.setAccessible(true);
@@ -263,8 +314,56 @@ public final class LoaderSmoke {
         } finally {unsafe.freeMemory(allocation);}
         System.out.println("SMOKE_OK actual chunk packing: "+cases+" lava/solid/air cases, section offsets, adjacent sections and buffer guards");
     }
+    private static void checkHeadlessMenu(ClassLoader target,Object unsafe,java.lang.reflect.Method allocate,Object mc,Object gui,Object window,Object controller,Object player,Object menu)throws Exception {
+        fixtureField(gui,"minecraft",mc);fixtureField(mc,"player",player);fixtureField(player,"containerMenu",menu);
+        fixtureField(controller,"ownsScreen",true);
+        Class<?> screen=Class.forName("net.minecraft.client.gui.screens.Screen",true,target);
+        Object chestScreen=allocate.invoke(unsafe,Class.forName("net.minecraft.client.gui.screens.inventory.ContainerScreen",true,target));
+        fixtureField(chestScreen,"menu",menu);
+        var setScreen=gui.getClass().getMethod("setScreen",screen);
+        setScreen.invoke(gui,chestScreen);setScreen.invoke(gui,new Object[]{null});
+        var shown=gui.getClass().getMethod("screen");
+        if(shown.invoke(gui)!=null)throw new AssertionError("Background chest must retain server menu without presenting GUI");
+        fixtureField(window,"focused",true);
+        expectGuiPath(setScreen,gui,chestScreen);
+        fixtureField(window,"focused",false);fixtureField(controller,"ownsScreen",false);
+        expectGuiPath(setScreen,gui,chestScreen);
+        fixtureField(gui,"screen",null);fixtureField(controller,"ownsScreen",true);
+        Class<?> mouseClass=Class.forName("net.minecraft.client.MouseHandler",true,target);
+        Object mouse=allocate.invoke(unsafe,mouseClass);fixtureField(mouse,"minecraft",mc);
+        mouseClass.getMethod("resyncMousePosition").invoke(mouse); // must not touch SDL at all
+        var ignore=mouseClass.getDeclaredField("ignoreFirstMove");ignore.setAccessible(true);
+        if(!ignore.getBoolean(mouse))throw new AssertionError("Unfocused menu transition must defer native cursor query");
+        fixtureField(mouse,"ignoreFirstMove",false);fixtureField(mouse,"mouseGrabbed",true);fixtureField(window,"focused",true);
+        mouseClass.getMethod("resyncMousePosition").invoke(mouse);
+        if(ignore.getBoolean(mouse))throw new AssertionError("Focused cursor behavior must stay native");
+        fixtureField(window,"focused",false);fixtureField(controller,"ownsScreen",false);fixtureField(mc,"player",null);
+        System.out.println("SMOKE_OK actual headless owned-container open/close; focused/unowned GUI fallback; background native mouse query bypass");
+    }
+    private static void expectGuiPath(java.lang.reflect.Method setter,Object gui,Object screen)throws Exception {
+        try{setter.invoke(gui,screen);throw new AssertionError("Normal GUI transition must not be cancelled");}
+        catch(java.lang.reflect.InvocationTargetException expected){if(!(expected.getCause() instanceof NullPointerException))throw expected;}
+    }
+    private static void checkTrailAdapter(ClassLoader target)throws Exception {
+        Class<?> route=Class.forName("dev.autostore.trail.TrailRoute",true,target);
+        Class<?> cell=Class.forName("dev.autostore.trail.TrailRoute$Cell",true,target);
+        Class<?> chunk=Class.forName("net.minecraft.world.level.ChunkPos",true,target);
+        Object planner=route.getConstructor(double.class,double.class).newInstance(1.0,0.0),center=cell.getConstructor(int.class,int.class).newInstance(0,0);
+        java.util.Set<Object> old=new java.util.HashSet<>(),fresh=new java.util.HashSet<>();
+        for(int i=0;i<=10;i++)old.add(chunk.getConstructor(int.class,int.class).newInstance(i,0));
+        fresh.add(chunk.getConstructor(int.class,int.class).newInstance(3,0));
+        Class.forName("dev.autostore.trail.TrouserTrail",true,target).getMethod("sampleSets",route,cell,java.util.Set.class,java.util.Set.class,java.util.Set.class,java.util.Set.class)
+            .invoke(null,planner,center,fresh,old,java.util.Set.of(),java.util.Set.of());
+        var next=(java.util.Optional<?>)route.getMethod("next",cell,int.class).invoke(planner,center,14);
+        if(next.isPresent())throw new AssertionError("Real ChunkPos adapter must prioritize new terrain over an old-trail classification");
+        System.out.println("SMOKE_OK real ChunkPos-to-trail adapter and fresh-terrain boundary");
+    }
     private static void fixtureField(Object fixture,String name,Object value)throws Exception {
-        var field=fixture.getClass().getDeclaredField(name);field.setAccessible(true);field.set(fixture,value);
+        for(Class<?> type=fixture.getClass();type!=null;type=type.getSuperclass()) {
+            try {var field=type.getDeclaredField(name);field.setAccessible(true);field.set(fixture,value);return;}
+            catch(NoSuchFieldException ignored){}
+        }
+        throw new NoSuchFieldException(name);
     }
     private static void expectNativeRender(java.lang.reflect.Method frame,Object fixture)throws Exception {
         try {frame.invoke(fixture,true);throw new AssertionError("Normal rendering must not be cancelled");}

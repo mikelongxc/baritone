@@ -62,6 +62,7 @@ public final class DefaultCommands {
                 new FindCommand(baritone),
                 new MineCommand(baritone),
                 new dev.autostore.StoreCommand(baritone),
+                new dev.autostore.trail.TrailCommand(baritone),
                 new ClickCommand(baritone),
                 new SurfaceCommand(baritone),
                 new ThisWayCommand(baritone),

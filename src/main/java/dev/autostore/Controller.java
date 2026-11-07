@@ -376,6 +376,7 @@ public final class Controller implements Loop.Port {
         return false;
     }
     public boolean deferAutoTool() {
+        if(dev.autostore.trail.TrailController.INSTANCE!=null && dev.autostore.trail.TrailController.INSTANCE.controlsTool())return true;
         return miningTools.waiting() || armed && loop.active() && (loop.state != Loop.State.MINING && loop.state != Loop.State.RETURNING || busy());
     }
     public boolean canUseMiningTool(ItemStack stack) { return (!miningTools.active() || MiningTools.healthy(stack)) && (!storageRouting() || durable(stack)); }
@@ -384,7 +385,7 @@ public final class Controller implements Loop.Port {
     }
     public boolean allowNativeMiningTool(ItemStack stack) { return (!miningTools.active() || safeSpare(stack)) && (!storageRouting() || usableTool(stack)); }
     public boolean storageRouting() { return armed && Cooperation.storageOwnsPath(loop.state); }
-    public boolean keepRunningInMenus() {return recovery.pending() || cooperativeJob() && !manuallyPaused;}
+    public boolean keepRunningInMenus() {return dev.autostore.trail.TrailController.INSTANCE!=null && dev.autostore.trail.TrailController.INSTANCE.background() || recovery.pending() || cooperativeJob() && !manuallyPaused;}
     public boolean canMonitorMine() {
         return canMonitorDamageRecovery() && !busy() && !nearlyFull();
     }
@@ -440,6 +441,8 @@ public final class Controller implements Loop.Port {
         try { loop.yieldForActivity(now()); }
         catch (RuntimeException failure) { emergency("Could not save module-yield checkpoint; job stopped"); }
     }
+    public boolean ownsStorageMenu(){return armed && loop.active() && ownsScreen;}
+    public String backgroundStatus(){return "Background: "+(keepRunningInMenus()?"enabled":"idle")+" | window "+(mc.isWindowActive()?"focused":"unfocused")+" | owned menu "+ownsScreen+" | server snapshots "+fullSnapshotRevision;}
     public boolean permitContainerClick() {
         boolean permitted=(!miningTools.swapping() || ownClick) && Cooperation.allowContainerClick(cooperativeJob(), ownsScreen, before != null, ownClick);
         ownClick=false; // consume the one authorized click before any reentrant module callback
@@ -746,6 +749,7 @@ public final class Controller implements Loop.Port {
         BlockHitResult hit=reachableHit(d);
         if(hit==null) {storageFailed(depot,"BLOCKED_OR_OUT_OF_REACH");return false;}
         expectedDepot=depot; snapshot=null; ownsScreen=true;snapshotWaitSince=-1;
+        ServerInteractions.face(mc,hit.getLocation());
         mc.gameMode.useItemOn(mc.player,InteractionHand.MAIN_HAND,hit);
         return true;
     }

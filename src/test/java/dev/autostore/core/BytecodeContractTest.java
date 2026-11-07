@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class BytecodeContractTest {
     @Test void allRequiredMixinSelectorsAndCallbackSignaturesMatchPinnedJars() throws Exception {
         int checked=0;
-        for(String mixin:List.of("BreakGuardMixin","ContainerSnapshotMixin","AutoEatMixin","AutoToolMixin","AutoToolAccess","KillAuraMixin","InteractionGuardMixin","BackgroundMiningMixin","BackgroundFpsMixin","PauseMenuMixin","BackgroundFrameMixin")) {
+        for(String mixin:List.of("BreakGuardMixin","ContainerSnapshotMixin","AutoEatMixin","AutoToolMixin","AutoToolAccess","KillAuraMixin","InteractionGuardMixin","BackgroundMiningMixin","BackgroundFpsMixin","PauseMenuMixin","BackgroundFrameMixin","BackgroundContainerMixin","BackgroundMouseMixin")) {
             ClassNode source=read(Files.readAllBytes(Path.of("build/classes/java/main/dev/autostore/mixin/"+mixin+".class")));
             AnnotationNode annotation=annotations(source.visibleAnnotations,source.invisibleAnnotations).stream().filter(a -> a.desc.endsWith("/Mixin;")).findFirst().orElseThrow();
             @SuppressWarnings("unchecked") List<Type> targets=(List<Type>)value(annotation,"value");
@@ -37,7 +37,7 @@ class BytecodeContractTest {
                 }
             }
         }
-        assertEquals(14,checked);
+        assertEquals(19,checked);
     }
     @Test void autoToolInvokerAndKillAuraRedirectMatchThePinnedMeteorBytecode() throws Exception {
         try(JarFile jar=new JarFile("deps/meteor.jar")) {

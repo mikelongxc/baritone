@@ -70,6 +70,8 @@ import static baritone.api.pathing.movement.ActionCosts.COST_INF;
 public class ElytraProcess extends BaritoneProcessHelper implements IBaritoneProcess, IElytraProcess, AbstractGameEventListener {
     public State state;
     private boolean goingToLandingSpot;
+    private boolean requestedLanding;
+    @Override public void requestLanding(){requestedLanding=true;}
     private BetterBlockPos landingSpot;
     private boolean reachedGoal; // this basically just prevents potential notification spam
     private Goal goal;
@@ -96,6 +98,7 @@ public class ElytraProcess extends BaritoneProcessHelper implements IBaritonePro
     public void onLostControl(boolean destroyNpf) {
         this.state = State.START_FLYING; // TODO: null state?
         this.goingToLandingSpot = false;
+        this.requestedLanding = false;
         this.landingSpot = null;
         this.landingSearchState = null;
         this.reachedGoal = false;
@@ -175,7 +178,7 @@ public class ElytraProcess extends BaritoneProcessHelper implements IBaritonePro
             return new PathingCommand(null, PathingCommandType.CANCEL_AND_SET_GOAL);
         }
 
-        boolean safetyLanding = false;
+        boolean safetyLanding = requestedLanding && ctx.player().isFallFlying();
         if (ctx.player().isFallFlying() && shouldLandForSafety()) {
             if (Baritone.settings().elytraAllowEmergencyLand.value) {
                 logDirect("Emergency landing - almost out of elytra durability or fireworks");
@@ -186,7 +189,7 @@ public class ElytraProcess extends BaritoneProcessHelper implements IBaritonePro
         }
         if (ctx.player().isFallFlying() && this.state != State.LANDING && (this.behavior.pathManager.isComplete() || safetyLanding)) {
             final BetterBlockPos last = this.behavior.pathManager.path.getLast();
-            if (last != null && (last.distToCenterSqr(ctx.player().position()) < (48 * 48) || safetyLanding) && (!goingToLandingSpot || (safetyLanding && this.landingSpot == null))) {
+            if ((last != null && last.distToCenterSqr(ctx.player().position()) < (48 * 48) || safetyLanding) && (!goingToLandingSpot || (safetyLanding && this.landingSpot == null))) {
                 if (this.landingSearchState == null) {
                     logDirect("Path complete, searching for safe landing spot...");
                 }

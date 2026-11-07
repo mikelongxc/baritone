@@ -36,6 +36,7 @@ public final class StoreCommand extends Command {
                     if(c.profile==null)c.load();
                     logDirect(c.toolStatus());
                     logDirect(c.recoveryStatus());
+                    logDirect(c.backgroundStatus());
                     logDirect(c.loop.state+": "+c.statusReason()+" | "+c.profile.depots.size()+" registered containers");
                 }
                 case "remove" -> {

@@ -1,13 +1,19 @@
-# Baritone AutoStore 2.7.0 — Minecraft 26.3
+# Baritone AutoStore 2.8.0-beta.1 — Minecraft 26.3
 
 A source fork of Baritone for Meteor 26.3-15. Baritone owns mining and selection clearing; AutoStore temporarily takes control to deposit items in registered chests or placed shulkers. Existing registrations remain compatible.
 
-Download the runtime jar from [Releases](https://github.com/mikelongxc/baritone/releases/latest). See [validation results](VALIDATION.md) and [upstream provenance](UPSTREAM.md).
+Download the runtime jar from [Releases](https://github.com/mikelongxc/baritone/releases/tag/autostore-2.8.0-beta.1). See [validation results](VALIDATION.md) and [upstream provenance](UPSTREAM.md).
+
+## Trail flight and carried-shulker refueling
+
+This beta adds `#trail` for Minecraft 26.3 with Trouser Streak 1.7.0. See [TRAIL.md](TRAIL.md) for supplies, commands, behavior and limits. Existing AutoStore commands and registrations remain compatible.
+
+Background managed chest/shulker transactions now keep the server menu open without initializing or presenting its screen. Menu transitions also skip native global cursor queries while the bot is unfocused. Focused/manual containers retain normal GUI behavior. Storage opens explicitly send the facing rotation before the interaction packet. `#store status` now includes background/focus/owned-menu/snapshot diagnostics without coordinates. These changes address the storage GUI dependency; the exact reported live stall has not been reproduced.
 
 ## Install and use
 
 1. Fully quit every Minecraft instance. A running game keeps its loaded jar even if you replace or trash that file.
-2. Keep Meteor 26.3-15, Fabric API and your other compatible mods. Install only `baritone-autostore-26.3-autostore-2.7.0.jar`; remove older Baritone/AutoStore runtime jars. Do not install the sources jar or source ZIP.
+2. Keep Meteor 26.3-15, Fabric API and your other compatible mods. Install only `baritone-autostore-26.3-autostore-2.8.0-beta.1.jar`; remove older Baritone/AutoStore runtime jars. Do not install the sources jar or source ZIP.
 3. Launch Minecraft 26.3 with Java 25 and Fabric Loader 0.19.5 or newer.
 4. Look at each chest or already placed shulker from a reachable standing position and run `#store`. Previously saved chests do not need re-registration.
 5. Run `#mine minecraft:sand`, or mark a selection with `#sel pos1` and `#sel pos2`, then run `#sel ca`.
@@ -26,7 +32,7 @@ Commands:
 
 A screen is no longer a fatal startup validation error. The managed job remains armed while a blocking screen is open and continues automatically when it clears. If a new #mine or #sel ca begins with an ordinary chest/placed shulker already open, AutoStore captures that exact menu and closes it automatically once the cursor is empty. It does not transfer/drop the cursor stack, close a replacement menu you subsequently open, or close while manually paused or a transaction is pending. Inventory, Esc and Xaero retain their passive-screen behavior. Other container types wait instead of being closed automatically.
 
-For an old session already stuck at `PAUSED: Close the other container or blocking screen before starting`, close the blocking screen and rerun the same #mine command. The startup fix takes effect after a full client restart onto 2.7.0.
+For an old session already stuck at `PAUSED: Close the other container or blocking screen before starting`, close the blocking screen and rerun the same #mine command. The startup fix takes effect after a full client restart onto 2.8.0-beta.1.
 
 ## Deposits and background operation
 
@@ -96,7 +102,7 @@ The native flight map now marks all 512 bytes of a solid 16×16×16 section as b
 
 ## Validation and limits
 
-140 automated tests pass. Twelve additional real chunk-packing cases cover lava, solid and air sections. Isolated loader probes exercise transformations, dependency checks, native pathfinder initialization, real ItemStack durability methods including 98/2031, and the vanilla no-slot container-refresh branch. See VALIDATION.md and TEST-RESULTS.txt for the tested mod combinations.
+171 automated tests pass. Twelve additional real chunk-packing cases cover lava, solid and air sections. Isolated loader probes exercise transformations, dependency checks, native pathfinder initialization, real ItemStack durability methods including 98/2031, and the vanilla no-slot container-refresh branch. See VALIDATION.md and TEST-RESULTS.txt for the tested mod combinations.
 
 No Minecraft client/world was started and no live server was accessed. Selection clearing, paced storage, focus/minimize behavior, tool swaps and deliberate relog have not been gameplay-tested. These are code and isolated-runtime checks, not a claim of unattended gameplay reliability. Servers with queues/authentication plugins or custom inventory protocols may require manual intervention. No private coordinates are included in this distribution.
 

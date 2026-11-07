@@ -14,6 +14,7 @@ public abstract class InteractionGuardMixin {
     @Inject(method="handleContainerInput",at=@At("HEAD"),cancellable=true)
     private void reserveOwnedMenu(int id,int slot,int button,ContainerInput input,Player player,CallbackInfo ci) {
         if(Controller.INSTANCE!=null && !Controller.INSTANCE.permitContainerClick()) ci.cancel();
+        if(dev.autostore.trail.TrailController.INSTANCE!=null && !dev.autostore.trail.TrailController.INSTANCE.permitClick())ci.cancel();
     }
     @Inject(method="attack",at=@At("HEAD"))
     private void combatPriority(Player player,Entity target,CallbackInfo ci) {

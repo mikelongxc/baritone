@@ -13,7 +13,9 @@
     "BackgroundMiningMixin",
     "BackgroundFpsMixin",
     "PauseMenuMixin",
-    "BackgroundFrameMixin"
+    "BackgroundFrameMixin",
+    "BackgroundContainerMixin",
+    "BackgroundMouseMixin"
   ],
   "injectors": {
     "defaultRequire": 1

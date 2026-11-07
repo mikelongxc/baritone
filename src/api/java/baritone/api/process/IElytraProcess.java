@@ -27,6 +27,9 @@ public interface IElytraProcess extends IBaritoneProcess {
 
     void repackChunks();
 
+    /** Ask the active flight to find solid terrain and land, retaining native flight control. */
+    default void requestLanding() {}
+
     /**
      * @return Where it is currently flying to, null if not active
      */

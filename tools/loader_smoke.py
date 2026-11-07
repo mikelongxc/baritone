@@ -10,7 +10,7 @@ if work.exists() and any(work.iterdir()):
     raise SystemExit('Use a new empty smoke-test directory; never an existing Minecraft installation.')
 work.mkdir(parents=True,exist_ok=True);(work/'mods').mkdir();(work/'classes').mkdir()
 for name in ['meteor.jar']:shutil.copy2(root/'deps'/name,work/'mods'/name)
-shutil.copy2(pathlib.Path(a.mod_jar).resolve() if a.mod_jar else root/'build/libs/baritone-autostore-26.3-autostore-2.7.0.jar',work/'mods/baritone-autostore.jar')
+shutil.copy2(pathlib.Path(a.mod_jar).resolve() if a.mod_jar else root/'build/libs/baritone-autostore-26.3-autostore-2.8.0-beta.1.jar',work/'mods/baritone-autostore.jar')
 for mod in a.extra_mod:
     path=pathlib.Path(mod).resolve();shutil.copy2(path,work/'mods'/path.name)
 loader=pathlib.Path(a.loader_jar).resolve() if a.loader_jar else root/'deps/fabric-loader-0.19.5.jar'

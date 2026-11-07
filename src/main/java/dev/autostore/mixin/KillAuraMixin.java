@@ -11,6 +11,8 @@ import org.spongepowered.asm.mixin.injection.*;
 
 @Mixin(value=KillAura.class,remap=false)
 public abstract class KillAuraMixin {
+    @org.spongepowered.asm.mixin.injection.Inject(method="onTick",at=@At("HEAD"),cancellable=true)
+    private void trailTransaction(meteordevelopment.meteorclient.events.world.TickEvent.Pre event,org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci){if(dev.autostore.trail.TrailController.INSTANCE!=null && dev.autostore.trail.TrailController.INSTANCE.deferEquipmentAutomation())ci.cancel();}
     @Shadow private boolean acceptableWeapon(ItemStack stack) { throw new AssertionError(); }
 
     /** This check occurs after target selection. Read the newly selected sword, not a stale argument. */

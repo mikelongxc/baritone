@@ -87,6 +87,7 @@ public class ExecutionControlCommands {
                 if (paused[0]) {
                     throw new CommandInvalidStateException("Already paused");
                 }
+                if(dev.autostore.trail.TrailController.INSTANCE!=null && dev.autostore.trail.TrailController.INSTANCE.active()){dev.autostore.trail.TrailController.INSTANCE.pause();logDirect("Trail landing to pause");return;}
                 if (dev.autostore.Controller.INSTANCE != null && dev.autostore.Controller.INSTANCE.cooperativeJob()) {
                     dev.autostore.Controller.INSTANCE.manualPause();
                     logDirect("Mining and storage paused");
@@ -123,6 +124,7 @@ public class ExecutionControlCommands {
             @Override
             public void execute(String label, IArgConsumer args) throws CommandException {
                 args.requireMax(0);
+                if(dev.autostore.trail.TrailController.INSTANCE!=null && dev.autostore.trail.TrailController.INSTANCE.resume()){paused[0]=false;logDirect("Trail resumed");return;}
                 if (dev.autostore.Controller.INSTANCE != null && dev.autostore.Controller.INSTANCE.manualResume()) {
                     paused[0] = false;
                     logDirect("Mining and storage resumed");
@@ -191,6 +193,7 @@ public class ExecutionControlCommands {
                 if (paused[0]) {
                     paused[0] = false;
                 }
+                if(dev.autostore.trail.TrailController.INSTANCE!=null)dev.autostore.trail.TrailController.INSTANCE.stop();
                 if (dev.autostore.Controller.INSTANCE != null) dev.autostore.Controller.INSTANCE.manualStop();
                 baritone.getPathingBehavior().cancelEverything();
                 logDirect("ok canceled");

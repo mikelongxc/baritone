@@ -10,6 +10,8 @@ public final class AutoStoreAddon extends MeteorAddon {
         Controller.INSTANCE = new Controller();
         MeteorClient.EVENT_BUS.subscribe(Controller.INSTANCE);
         Commands.add(new StorageCommand());
+        dev.autostore.trail.TrailController.INSTANCE=new dev.autostore.trail.TrailController();
+        MeteorClient.EVENT_BUS.subscribe(dev.autostore.trail.TrailController.INSTANCE);
     }
     @Override public String getPackage() { return "dev.autostore"; }
 }
