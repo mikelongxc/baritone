@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "nether-pathfinder",
+  "version": "1.6.0",
+  "name": "Nether Pathfinder (bundled library)",
+  "description": "Original nether-pathfinder 1.6 with Fabric discovery metadata.",
+  "environment": "client"
+}

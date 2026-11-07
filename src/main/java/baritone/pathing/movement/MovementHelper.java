@@ -67,6 +67,7 @@ import static baritone.pathing.precompute.Ternary.*;
 public interface MovementHelper extends ActionCosts, Helper {
 
     static boolean avoidBreaking(BlockStateInterface bsi, int x, int y, int z, BlockState state) {
+        if (dev.autostore.Controller.INSTANCE != null && !dev.autostore.Controller.INSTANCE.permitTarget(new BlockPos(x,y,z))) return true;
         if (!bsi.worldBorder.canPlaceAt(x, z)) {
             return true;
         }
@@ -577,6 +578,7 @@ public interface MovementHelper extends ActionCosts, Helper {
     }
 
     static boolean canPlaceAgainst(BlockStateInterface bsi, int x, int y, int z, BlockState state) {
+        if (dev.autostore.Controller.INSTANCE != null && !dev.autostore.Controller.INSTANCE.permitTarget(new BlockPos(x,y,z))) return true;
         if (!bsi.worldBorder.canPlaceAt(x, z)) {
             return false;
         }
@@ -658,6 +660,7 @@ public interface MovementHelper extends ActionCosts, Helper {
      * @param ts  previously calculated ToolSet
      */
     static void switchToBestToolFor(IPlayerContext ctx, BlockState b, ToolSet ts, boolean preferSilkTouch) {
+        if (dev.autostore.Controller.INSTANCE != null && (!dev.autostore.Controller.INSTANCE.prepareMiningTool(b) || dev.autostore.Controller.INSTANCE.deferAutoTool())) return;
         if (Baritone.settings().autoTool.value && !Baritone.settings().assumeExternalAutoTool.value) {
             ctx.player().getInventory().setSelectedSlot(ts.getBestSlot(b.getBlock(), preferSilkTouch));
         }

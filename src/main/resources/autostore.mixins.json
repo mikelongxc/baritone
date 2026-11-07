@@ -1,0 +1,21 @@
+{
+  "required": true,
+  "package": "dev.autostore.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "BreakGuardMixin",
+    "ContainerSnapshotMixin",
+    "AutoEatMixin",
+    "AutoToolMixin",
+    "AutoToolAccess",
+    "KillAuraMixin",
+    "InteractionGuardMixin",
+    "BackgroundMiningMixin",
+    "BackgroundFpsMixin",
+    "PauseMenuMixin",
+    "BackgroundFrameMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

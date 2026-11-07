@@ -97,6 +97,7 @@ public final class BuilderProcess extends BaritoneProcessHelper implements IBuil
 
     @Override
     public void build(String name, ISchematic schematic, Vec3i origin) {
+        if(dev.autostore.Controller.INSTANCE!=null && baritone==dev.autostore.Controller.INSTANCE.baritone())dev.autostore.Controller.INSTANCE.beforeNativeBuild();
         this.name = name;
         this.schematic = schematic;
         this.realSchematic = null;

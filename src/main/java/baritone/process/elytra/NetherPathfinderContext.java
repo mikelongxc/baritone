@@ -63,7 +63,6 @@ public final class NetherPathfinderContext implements IElytraPathFinder {
         }
     }
     private static final BlockState AIR_BLOCK_STATE = Blocks.AIR.defaultBlockState();
-    private static final int SECTION_SIZE = 16;
     // This lock must be held while there are active pointers to chunks in java,
     // but we just hold it for the entire tick so we don't have to think much about it.
     public final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
@@ -322,7 +321,8 @@ public final class NetherPathfinderContext implements IElytraPathFinder {
                     else if (bs == Blocks.BROWN_MUSHROOM.defaultBlockState()) brownMushroomId = i;
                 }
                 if (airId == -1 & caveAirId == -1) {
-                    final long bytesInSection = SECTION_SIZE / 8;
+                    // One occupancy bit per block: 16 * 16 * 16 / 8 = 512 bytes.
+                    final long bytesInSection = Octree.SIZEOF_X16;
                     UNSAFE.setMemory(chunkPtr + (y0 * bytesInSection), bytesInSection, (byte) 0xFF);
                     continue;
                 }

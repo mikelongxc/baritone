@@ -1,148 +1,119 @@
-# Baritone
+# Baritone AutoStore 2.7.0 — Minecraft 26.3
 
-<p align="center">
-  <a href="https://github.com/cabaletta/baritone/releases/"><img src="https://img.shields.io/github/downloads/cabaletta/baritone/total.svg" alt="GitHub All Releases"/></a>
-</p>
+A source fork of Baritone for Meteor 26.3-15. Baritone owns mining and selection clearing; AutoStore temporarily takes control to deposit items in registered chests or placed shulkers. Existing registrations remain compatible.
 
-<p align="center">
-  <a href="#Baritone"><img src="https://img.shields.io/badge/MC-1.12.2-brightgreen.svg" alt="Minecraft"/></a>
-  <a href="#Baritone"><img src="https://img.shields.io/badge/MC-1.13.2-yellow.svg" alt="Minecraft"/></a>
-  <a href="#Baritone"><img src="https://img.shields.io/badge/MC-1.14.4-yellow.svg" alt="Minecraft"/></a>
-  <a href="#Baritone"><img src="https://img.shields.io/badge/MC-1.15.2-yellow.svg" alt="Minecraft"/></a>
-  <a href="#Baritone"><img src="https://img.shields.io/badge/MC-1.16.5-yellow.svg" alt="Minecraft"/></a>
-  <a href="#Baritone"><img src="https://img.shields.io/badge/MC-1.17.1-yellow.svg" alt="Minecraft"/></a>
-  <a href="#Baritone"><img src="https://img.shields.io/badge/MC-1.18.2-yellow.svg" alt="Minecraft"/></a>
-  <a href="#Baritone"><img src="https://img.shields.io/badge/MC-1.19.2-brightgreen.svg" alt="Minecraft"/></a>
-  <a href="#Baritone"><img src="https://img.shields.io/badge/MC-1.19.4-brightgreen.svg" alt="Minecraft"/></a>
-  <a href="#Baritone"><img src="https://img.shields.io/badge/MC-1.20.1-brightgreen.svg" alt="Minecraft"/></a>
-  <a href="#Baritone"><img src="https://img.shields.io/badge/MC-1.21.3-brightgreen.svg" alt="Minecraft"/></a>
-</p>
+Download the runtime jar from [Releases](https://github.com/mikelongxc/baritone/releases/latest). See [validation results](VALIDATION.md) and [upstream provenance](UPSTREAM.md).
 
-<p align="center">
-  <a href="https://travis-ci.com/cabaletta/baritone/"><img src="https://travis-ci.com/cabaletta/baritone.svg?branch=master" alt="Build Status"/></a>
-  <a href="https://github.com/cabaletta/baritone/releases/"><img src="https://img.shields.io/github/release/cabaletta/baritone.svg" alt="Release"/></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-LGPL--3.0%20with%20anime%20exception-green.svg" alt="License"/></a>
-  <a href="https://www.codacy.com/gh/cabaletta/baritone/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=cabaletta/baritone&amp;utm_campaign=Badge_Grade"><img src="https://app.codacy.com/project/badge/Grade/cadab857dab049438b6e28b3cfc5570e" alt="Codacy Badge"/></a>
-  <a href="https://github.com/cabaletta/baritone/blob/master/CODE_OF_CONDUCT.md"><img src="https://img.shields.io/badge/%E2%9D%A4-code%20of%20conduct-blue.svg?style=flat" alt="Code of Conduct"/></a>
-  <a href="https://snyk.io/test/github/cabaletta/baritone?targetFile=build.gradle"><img src="https://snyk.io/test/github/cabaletta/baritone/badge.svg?targetFile=build.gradle" alt="Known Vulnerabilities"/></a>
-  <a href="https://github.com/cabaletta/baritone/issues/"><img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat" alt="Contributions welcome"/></a>
-  <a href="https://github.com/cabaletta/baritone/issues/"><img src="https://img.shields.io/github/issues/cabaletta/baritone.svg" alt="Issues"/></a>
-  <a href="https://github.com/cabaletta/baritone/issues?q=is%3Aissue+is%3Aclosed"><img src="https://img.shields.io/github/issues-closed/cabaletta/baritone.svg" alt="GitHub issues-closed"/></a>
-  <a href="https://github.com/cabaletta/baritone/pulls/"><img src="https://img.shields.io/github/issues-pr/cabaletta/baritone.svg" alt="Pull Requests"/></a>
-  <a href="https://github.com/cabaletta/baritone/graphs/contributors/"><img src="https://img.shields.io/github/contributors/cabaletta/baritone.svg" alt="GitHub contributors"/></a>
-  <a href="https://github.com/cabaletta/baritone/commit/"><img src="https://img.shields.io/github/commits-since/cabaletta/baritone/v1.0.0.svg" alt="GitHub commits"/></a>
-  <img src="https://img.shields.io/github/languages/code-size/cabaletta/baritone.svg" alt="Code size"/>
-  <img src="https://img.shields.io/github/repo-size/cabaletta/baritone.svg" alt="GitHub repo size"/>
-  <img src="https://tokei.rs/b1/github/cabaletta/baritone?category=code&style=flat" alt="Lines of Code"/>
-  <img src="https://img.shields.io/badge/Badges-36-blue.svg" alt="yes"/>
-</p>
+## Install and use
 
-<p align="center">
-  <a href="https://impactclient.net/"><img src="https://img.shields.io/badge/Impact%20integration-v1.2.14%20/%20v1.3.8%20/%20v1.4.6%20/%20v1.5.3%20/%20v1.6.3-brightgreen.svg" alt="Impact integration"/></a>
-  <a href="https://github.com/lambda-client/lambda"><img src="https://img.shields.io/badge/Lambda%20integration-v1.2.17-brightgreen.svg" alt="Lambda integration"/></a>
-  <a href="https://github.com/fr1kin/ForgeHax/"><img src="https://img.shields.io/badge/ForgeHax%20%22integration%22-scuffed-yellow.svg" alt="ForgeHax integration"/></a>
-  <a href="https://aristois.net/"><img src="https://img.shields.io/badge/Aristois%20add--on%20integration-v1.6.3-green.svg" alt="Aristois add-on integration"/></a>
-  <a href="https://rootnet.dev/"><img src="https://img.shields.io/badge/rootNET%20integration-v1.2.14-green.svg" alt="rootNET integration"/></a>
-  <a href="https://futureclient.net/"><img src="https://img.shields.io/badge/Future%20integration-v1.2.12%20%2F%20v1.3.6%20%2F%20v1.4.4-red" alt="Future integration"/></a>
-  <a href="https://rusherhack.org/"><img src="https://img.shields.io/badge/RusherHack%20integration-v1.2.14-green" alt="RusherHack integration"/></a>
-</p>
+1. Fully quit every Minecraft instance. A running game keeps its loaded jar even if you replace or trash that file.
+2. Keep Meteor 26.3-15, Fabric API and your other compatible mods. Install only `baritone-autostore-26.3-autostore-2.7.0.jar`; remove older Baritone/AutoStore runtime jars. Do not install the sources jar or source ZIP.
+3. Launch Minecraft 26.3 with Java 25 and Fabric Loader 0.19.5 or newer.
+4. Look at each chest or already placed shulker from a reachable standing position and run `#store`. Previously saved chests do not need re-registration.
+5. Run `#mine minecraft:sand`, or mark a selection with `#sel pos1` and `#sel pos2`, then run `#sel ca`.
 
-<p align="center">
-  <a href="http://forthebadge.com/"><img src="https://web.archive.org/web/20230604002050/https://forthebadge.com/images/badges/built-with-swag.svg" alt="forthebadge"/></a>
-  <a href="http://forthebadge.com/"><img src="https://web.archive.org/web/20230604002050/https://forthebadge.com/images/badges/mom-made-pizza-rolls.svg" alt="forthebadge"/></a>
-</p>
+The inventory reserve is one slot by default. Storage trips choose the nearest eligible registered container, fall back when it is full/unreachable, and retry exhausted destinations after a cooldown. Native pathfinding can break/place access blocks during the trip. Bring ordinary building blocks and appropriate tools. No blocks are created automatically. Keep storage outside the area you ask Baritone to clear.
 
-A Minecraft pathfinder bot.
+Commands:
 
-Baritone is the pathfinding system used in [Impact](https://impactclient.net/) since 4.4. [Here's](https://www.youtube.com/watch?v=StquF69-_wI) a (very old!) video I made showing off what it can do.
+- `#store count` — number of saved containers.
+- `#store list` — saved names and last result, without coordinates.
+- `#store status` — storage state, tool durability/reserve and recovery timers.
+- `#store clear` / `#store clear name` — stop the managed job and remove all/one registration.
+- `#pause`, `#resume`, `#stop` — explicit controls; stopping cancels pending recovery.
 
-[**Baritone Discord Server**](http://discord.gg/s6fRBAUpmr)
+## Starting with a screen/container open
 
-**Quick download links:**
+A screen is no longer a fatal startup validation error. The managed job remains armed while a blocking screen is open and continues automatically when it clears. If a new #mine or #sel ca begins with an ordinary chest/placed shulker already open, AutoStore captures that exact menu and closes it automatically once the cursor is empty. It does not transfer/drop the cursor stack, close a replacement menu you subsequently open, or close while manually paused or a transaction is pending. Inventory, Esc and Xaero retain their passive-screen behavior. Other container types wait instead of being closed automatically.
 
-| Forge                                                                                                         | Fabric                                                                                                          | NeoForge                                                                                                            |
-|---------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
-| [1.12.2 Forge](https://github.com/cabaletta/baritone/releases/download/v1.2.19/baritone-api-forge-1.2.19.jar) |                                                                                                                 |                                                                                                                     |
-| [1.16.5 Forge](https://github.com/cabaletta/baritone/releases/download/v1.6.5/baritone-api-forge-1.6.5.jar)   | [1.16.5 Fabric](https://github.com/cabaletta/baritone/releases/download/v1.6.5/baritone-api-fabric-1.6.5.jar)   |                                                                                                                     |
-| [1.17.1 Forge](https://github.com/cabaletta/baritone/releases/download/v1.7.3/baritone-api-forge-1.7.3.jar)   | [1.17.1 Fabric](https://github.com/cabaletta/baritone/releases/download/v1.7.3/baritone-api-fabric-1.7.3.jar)   |                                                                                                                     |
-| [1.18.2 Forge](https://github.com/cabaletta/baritone/releases/download/v1.8.6/baritone-api-forge-1.8.6.jar)   | [1.18.2 Fabric](https://github.com/cabaletta/baritone/releases/download/v1.8.6/baritone-api-fabric-1.8.6.jar)   |                                                                                                                     |
-| [1.19.2 Forge](https://github.com/cabaletta/baritone/releases/download/v1.9.4/baritone-api-forge-1.9.4.jar)   | [1.19.2 Fabric](https://github.com/cabaletta/baritone/releases/download/v1.9.4/baritone-api-fabric-1.9.4.jar)   |                                                                                                                     |
-| [1.19.3 Forge](https://github.com/cabaletta/baritone/releases/download/v1.9.1/baritone-api-forge-1.9.1.jar)   | [1.19.3 Fabric](https://github.com/cabaletta/baritone/releases/download/v1.9.1/baritone-api-fabric-1.9.1.jar)   |                                                                                                                     |
-| [1.19.4 Forge](https://github.com/cabaletta/baritone/releases/download/v1.9.5/baritone-api-forge-1.9.5.jar)   | [1.19.4 Fabric](https://github.com/cabaletta/baritone/releases/download/v1.9.5/baritone-api-fabric-1.9.5.jar)   |                                                                                                                     |
-| [1.20.1 Forge](https://github.com/cabaletta/baritone/releases/download/v1.10.3/baritone-api-forge-1.10.3.jar) | [1.20.1 Fabric](https://github.com/cabaletta/baritone/releases/download/v1.10.3/baritone-api-fabric-1.10.3.jar) |                                                                                                                     |
-| [1.20.3 Forge](https://github.com/cabaletta/baritone/releases/download/v1.10.4/baritone-api-forge-1.10.4.jar) | [1.20.3 Fabric](https://github.com/cabaletta/baritone/releases/download/v1.10.4/baritone-api-fabric-1.10.4.jar) | [1.20.3 NeoForge](https://github.com/cabaletta/baritone/releases/download/v1.10.4/baritone-api-neoforge-1.10.4.jar) |
-| [1.20.4 Forge](https://github.com/cabaletta/baritone/releases/download/v1.10.4/baritone-api-forge-1.10.4.jar) | [1.20.4 Fabric](https://github.com/cabaletta/baritone/releases/download/v1.10.4/baritone-api-fabric-1.10.4.jar) | [1.20.4 NeoForge](https://github.com/cabaletta/baritone/releases/download/v1.10.4/baritone-api-neoforge-1.10.4.jar) |
-| [1.21.1 Forge](https://github.com/cabaletta/baritone/releases/download/v1.11.2/baritone-api-forge-1.11.2.jar) | [1.21.1 Fabric](https://github.com/cabaletta/baritone/releases/download/v1.11.2/baritone-api-fabric-1.11.2.jar) | [1.21.1 NeoForge](https://github.com/cabaletta/baritone/releases/download/v1.11.2/baritone-api-neoforge-1.11.2.jar) |
-| [1.21.3 Forge](https://github.com/cabaletta/baritone/releases/download/v1.11.1/baritone-api-forge-1.11.1.jar) | [1.21.3 Fabric](https://github.com/cabaletta/baritone/releases/download/v1.11.1/baritone-api-fabric-1.11.1.jar) | [1.21.3 NeoForge](https://github.com/cabaletta/baritone/releases/download/v1.11.1/baritone-api-neoforge-1.11.1.jar) |
-| [1.21.4 Forge](https://github.com/cabaletta/baritone/releases/download/v1.13.1/baritone-api-forge-1.13.1.jar) | [1.21.4 Fabric](https://github.com/cabaletta/baritone/releases/download/v1.13.1/baritone-api-fabric-1.13.1.jar) | [1.21.4 NeoForge](https://github.com/cabaletta/baritone/releases/download/v1.13.1/baritone-api-neoforge-1.13.1.jar) |
-| [1.21.5 Forge](https://github.com/cabaletta/baritone/releases/download/v1.14.0/baritone-api-forge-1.14.0.jar) | [1.21.5 Fabric](https://github.com/cabaletta/baritone/releases/download/v1.14.0/baritone-api-fabric-1.14.0.jar) | [1.21.5 NeoForge](https://github.com/cabaletta/baritone/releases/download/v1.14.0/baritone-api-neoforge-1.14.0.jar) |
-| [1.21.6 Forge](https://github.com/cabaletta/baritone/releases/download/v1.15.0/baritone-api-forge-1.15.0.jar) | [1.21.6 Fabric](https://github.com/cabaletta/baritone/releases/download/v1.15.0/baritone-api-fabric-1.15.0.jar) | [1.21.6 NeoForge](https://github.com/cabaletta/baritone/releases/download/v1.15.0/baritone-api-neoforge-1.15.0.jar) |
-| [1.21.7 Forge](https://github.com/cabaletta/baritone/releases/download/v1.15.0/baritone-api-forge-1.15.0.jar) | [1.21.7 Fabric](https://github.com/cabaletta/baritone/releases/download/v1.15.0/baritone-api-fabric-1.15.0.jar) | [1.21.7 NeoForge](https://github.com/cabaletta/baritone/releases/download/v1.15.0/baritone-api-neoforge-1.15.0.jar) |
-| [1.21.8 Forge](https://github.com/cabaletta/baritone/releases/download/v1.15.0/baritone-api-forge-1.15.0.jar) | [1.21.8 Fabric](https://github.com/cabaletta/baritone/releases/download/v1.15.0/baritone-api-fabric-1.15.0.jar) | [1.21.8 NeoForge](https://github.com/cabaletta/baritone/releases/download/v1.15.0/baritone-api-neoforge-1.15.0.jar) |
+For an old session already stuck at `PAUSED: Close the other container or blocking screen before starting`, close the blocking screen and rerun the same #mine command. The startup fix takes effect after a full client restart onto 2.7.0.
 
-**How to immediately get started:** Type `#goto 1000 500` in chat to go to x=1000 z=500. Type `#mine diamond_ore` to mine diamond ore. Type `#stop` to stop. For more, read [the usage page](USAGE.md) and/or watch this [tutorial playlist](https://www.youtube.com/playlist?list=PLnwnJ1qsS7CoQl9Si-RTluuzCo_4Oulpa). Also try `#elytra` for Elytra flying in the Nether using fireworks ([trailer](https://youtu.be/4bGGPo8yiHo), [usage](https://youtu.be/NnSlQi-68eQ)). For help, join the [Baritone Discord Server](http://discord.gg/s6fRBAUpmr).
+## Deposits and background operation
 
-For other versions of Minecraft or more complicated situations or for development, see [Installation & setup](SETUP.md). For 1.16.5, [click here](https://www.youtube.com/watch?v=_4eVJ9Qz2J8) and see description. Once Baritone is installed, look [here](USAGE.md) for instructions on how to use it. There's a [showcase video](https://youtu.be/CZkLXWo4Fg4) made by @Adovin#6313 on Baritone which I recommend. For help, join the [Baritone Discord Server](http://discord.gg/s6fRBAUpmr).
+The chest stays open for the entire load. AutoStore sends one quick-move, obtains authoritative server contents, then sends the next. This is intentionally paced to server replies rather than a burst of clicks in one tick. It does not close/reopen for each stack, and no confirmation reopen is needed. Normal transfers are checked for item/component conservation. Unexpected differences are reconciled against fresh server contents. A missing reply or closed chest retains the pending transfer, returns to the same storage without breaking/placing blocks, and retries confirmation automatically. Unavailable storage is retried every 30 seconds. Only an authoritative result allows another transfer; changed contents are refreshed automatically. A transfer is never blindly replayed.
 
-This project is an updated version of [MineBot](https://github.com/leijurv/MineBot/),
-the original version of the bot for Minecraft 1.8.9, rebuilt for 1.12.2 onwards. Baritone focuses on reliability and particularly performance (it's over [30x faster](https://github.com/cabaletta/baritone/pull/180#issuecomment-423822928) than MineBot at calculating paths).
+Implementation detail: vanilla can omit echoes for correctly predicted clicks. A stale-state PICKUP of slot -1 requests a full container snapshot. Slot -1 is a no-op in the pinned vanilla implementation; it is not the outside/drop slot -999. If a server rejects this resync request, automatic reconciliation uses a normal reopen of the same chest instead. The loader probe exercises the actual vanilla no-op branch; live server compatibility is not established.
 
-Have committed at least once a day from Aug 1, 2018, to Aug 1, 2019.
+Inventory, Esc and the main Xaero map may remain open. Storage temporarily replaces and then restores those passive screens. A cursor-held stack, unrelated chest/container, or a chat draft at the storage boundary still waits. While a managed job or deliberate recovery is active and the window is unfocused, AutoStore bypasses world/UI drawing and GPU surface presentation. The ordinary game-thread loop still polls window events, processes packets and runs game ticks; target picking and UI housekeeping continue, paced at 20 iterations per second. This removes the background graphics/presentation wait from the deposit loop. No focus spoofing or mouse capture is used. The background window's picture remains still until it regains focus; then normal rendering resumes. Explicit #pause, #stop and idle clients retain normal rendering. Saved video settings are unchanged. Resource tasks still drain, and third-party tick suspension or OS sleep remains outside this guarantee.
 
-1Leijurv3DWTrGAfmmiTphjhXLvQiHg7K2
+On macOS, an active managed job prevents idle system sleep using a process-scoped `caffeinate` assertion. Explicit Sleep, lid closure, shutdown and loss of network still suspend operation. AutoEat, AutoTool and KillAura may remain enabled; eating/combat yield movement. An in-flight deposit is confirmed before yielding its menu.
 
-# Getting Started
+Storage changes are recoverable. While opening, a stale or changed snapshot requests a fresh server view; if that container stays unavailable, the bot tries other registered storage. An unexpected inventory/container difference after a transfer requires a full authoritative snapshot (or a normal reopen), then discards the old transfer baseline and selects from the items actually present. It never blindly replays the old click. No “inventory changed—inspect manually” stop is used for these ordinary storage changes. If all registered containers are full/unavailable, unlimited multiplayer #mine requests deliberate relog recovery and retries storage; other jobs periodically check storage in-world. A held cursor or unrelated user-opened container waits without being manipulated.
 
-Here are some links to help to get started:
+## Full storage and alternate routes
 
-- [Features](FEATURES.md)
+A load can span multiple registered containers: fill the current chest, confirm that transfer, skip full/filtered containers, and continue with the nearest untried registered chest. Mining resumes once the output load is deposited. If every registered destination is full or unavailable during a supervised unlimited multiplayer `#mine`, automatically relog, restore the saved mining target and immediately retry storage before allowing mining to continue. The first eligible request starts the existing two-second reconnect countdown; further reconnects share the 60-second recovery cooldown. Fresh server inventory is used even if it differs from before disconnect, and remaining outputs still go to storage if the inventory is no longer nearly full. `#store status` shows the storage-recovery countdown. Selection clearing and single-player keep the 30-second in-world retry.
 
-- [Installation & setup](SETUP.md)
+Storage arrival now requires actual opening reach, not merely returning to the registration spot. If that spot is blocked or its route fails, Baritone tries a finite set of alternate positions around either chest half before skipping that destination. Already failed positions are excluded. Normal travel may break/place permitted access blocks; storage and its support remain protected. A double chest can be opened through either half. A registered chest gaining/losing its second half refreshes its layout before a new transaction; an in-flight transfer retains its original layout until reconciled. Other removed/replaced containers are still skipped. No registration or profile reset is required for this update.
 
-- [API Javadocs](https://baritone.leijurv.com/)
+## Selection clearing
 
-- [Settings](https://baritone.leijurv.com/baritone/api/Settings.html#field.detail)
+Only `#sel ca` (and its clear-area aliases) opts the builder into storage. Ordinary schematic builds/fills do not. The builder's original schematic, layers and completion state remain active during storage trips; AutoStore does not issue another clear command. Completion, replacement by another job, or `#stop` ends supervision.
 
-- [Usage (chat control)](USAGE.md)
+Unlike `#mine`, clearing can produce mixed drops. It deposits newly acquired ordinary items while retaining at least the starting quantity of each ordinary supply. Whole stacks are retained conservatively when splitting would cross that baseline. Equipment, food, enchanted/customized items, portable shulkers, ender chests, totems, rockets, and explicitly protected items/slots are excluded. This means an inventory already full of starting supplies may require freeing space before clearing. Explicit container item filters still apply.
 
-## Stars over time
+## Tool protection
 
-[![Stargazers over time](https://starchart.cc/cabaletta/baritone.svg)](https://starchart.cc/cabaletta/baritone)
+Both `#mine` and managed `#sel ca` retire tools at 5% remaining durability, rounded up: netherite 102/2031, diamond 79/1561. A netherite shovel at 98/2031 is ineligible. Suitable spares are selected from all 36 inventory slots. A full inventory is supported: the spare and worn tool exchange slots, keeping the worn tool. If no spare exists, an error stops the job; supply a tool and explicitly restart. Attempting to mine with a tool already below 5% also shows an error and stops, even if a spare exists. Replacement happens at the rounded reserve boundary before crossing below 5%.
 
-# API
+Normal break callbacks, tool selection, outgoing mining packets on the client thread, and a tick-level wear check enforce the reserve. Each locally completed break reserves worst-case wear per hotbar slot; near the boundary, mining waits for a full server inventory snapshot rather than reusing a stale durability number. Unbreaking savings are not assumed before confirmation. A below-floor break is blocked immediately; native job cancellation is queued outside its current callback to avoid reentrant builder corruption. Inventory-to-hotbar swaps wait for a server snapshot; lack of confirmation stops mining. Hotbar selection is explicitly synchronized. The guard does not protect armor or independent automation outside the managed job. Arbitrary mods sending custom mining packets and custom server damage rules are not proven safe by these checks.
 
-The API is heavily documented, you can find the Javadocs for the latest release [here](https://baritone.leijurv.com/).
-Please note that usage of anything located outside of the `baritone.api` package is not supported by the API release
-jar.
+## Storage-failure relog
 
-Below is an example of basic usage for changing some settings, and then pathing to an X/Z goal.
+“No usable storage” now reaches the reconnect coordinator instead of being excluded because mining is paused for storage. It triggers only after the storage pass is exhausted and depositable outputs remain. It does not relog in the middle of a transfer/tool swap, during explicit pause, with a held cursor or an unrelated open container, or after the native job ends. These conditions wait until safe or remain stopped as requested. An inventory filled only with protected supplies uses the separate inventory-space message and does not trigger reconnects. Fully full chests still cannot accept items after reconnect, so subsequent failed passes may request another rate-limited relog. The existing Cancel/Esc, rejected-login and world/player checks apply.
 
-```java
-BaritoneAPI.getSettings().allowSprint.value = true;
-BaritoneAPI.getSettings().primaryTimeoutMS.value = 2000L;
-BaritoneAPI.getProvider().getPrimaryBaritone().getCustomGoalProcess().setGoalAndPath(new GoalXZ(10000, 20000));
+This uses the existing unlimited multiplayer #mine recovery mechanism. It does not add selection-clear reconnect/restart or single-player reload.
+
+## Stuck mining recovery
+
+For an active, unlimited `#mine` supervised by storage:
+
+- Repeated attempted breaks with no target-item gains or confirmed mining/access-block changes trigger deliberate relog after **10 seconds**. Start/continue attempts count even if the client never finishes the break, including leaves and access blocks obstructing the requested target; they are sampled at most twice per second, requiring eight samples. Five position corrections with no progress also qualify. Local walking, flying and ordinary server chat do not reset this check.
+- Ordinary stationary/no-item progress refreshes the native route/search after **15 seconds**, then requests relog after another **15 seconds**. An unsafe-to-cancel path or a false client on-ground flag no longer prevents the watchdog from counting time. Route cancellation itself still respects native path safety.
+- Brief eating/combat/tool waits freeze the timers instead of erasing them. Explicit pause/stop or a new job resets them. No recovery runs during a deposit or tool swap.
+- A **two-second** reconnect screen provides Cancel/Esc. After rejoin and three seconds of chunk settling, the job resumes using the server's actual position and inventory. Position/inventory rollback does not prompt for inspection. Same player/server/dimension, a living player and an empty cursor are still required. The tool guard checks the new inventory before allowing mining.
+- Continued stalls can request another relog automatically, with a minimum **60-second** interval between attempts. Cooldown no longer faults/stops the job. Rejected login, login timeout, explicit cancellation, a different world/player, death, and unrelated disconnects do not blindly restart a job.
+
+`#store status` includes the idle/desync timers, retry cooldown and exact eligibility blocker without coordinates. Tool waits, storage state, cursor/screen holds, explicit pause and native mining ending are distinguished. Detection is heuristic; it does not identify an anti-cheat plugin. Server queues/authentication plugins and third-party tick suspension are not automated. Selection clearing retains storage/tool support but not automatic relog/restart.
+
+### Sustained damage recovery
+
+During an active unlimited `#mine`, server-reported damage lasting at least ten seconds with little mining progress triggers urgent relog and automatic restart of the saved target. The attacker does not have to exist at the client's apparent location. At least three hit notifications are required, with gaps no longer than four seconds. One hit or occasional separated hits do not trigger it.
+
+Little progress means at most two confirmed mining/access-block breaks or target-item gains in the latest ten seconds, or less than 25% of the ten-second mining rate immediately before the damage began (when that baseline is at least eight). Block confirmations and collected items are counted separately and their maximum is used, so delayed drops do not double-count a break. Local movement, fireworks, chat and speculative client block destruction do not count as mining progress.
+
+KillAura combat and AutoEat do not pause this damage timer. It bypasses the ordinary 60-second relog cooldown; each subsequent relog requires a new ten-second damage episode. Explicit pause/stop, pending deposits, tool swaps/confirmation, a held cursor and unrelated containers still exclude it. The two-second reconnect countdown, automatic server-state resume and 5% tool protection remain in force. `#store status` shows the damage timer.
+
+## Logs, stone/end stone and nearby mining
+
+Birch and other vanilla logs/stems, log-tagged blocks, sand, red sand, stone, end stone, deepslate and netherrack first scan a bounded cube six blocks around the player. Eligible candidates are ranked before applying the 64-target default limit, with exposed faces preferred. The existing loaded-chunk search remains the fallback. This avoids filling the limit from a distant corner of one dense chunk while ignoring closer blocks across its boundary.
+
+Those bulk materials explore near the current elevation instead of defaulting to the ore exploration depth. Failed-target exclusions expire after 30 seconds; route recovery also clears them. Late scans from a replaced/reset job cannot overwrite its new search state. Ore and explicit legit-mining elevation policies remain native, as do breakability, height and exposure restrictions. Unloaded/obfuscated blocks, genuinely unreachable terrain and restrictive Baritone settings can still limit discovery.
+
+## Elytra lava fix
+
+The native flight map now marks all 512 bytes of a solid 16×16×16 section as blocked, at the correct section offset. Previously it marked just two bytes, leaving lava/solid sections mostly classified as empty. This addresses [upstream issue #5113](https://github.com/cabaletta/baritone/issues/5113). Restart Minecraft to load the new code and rebuild in-memory flight data. This is a terrain-map correction, not a guarantee against every lava collision, server correction or incorrect predicted terrain.
+
+## Validation and limits
+
+140 automated tests pass. Twelve additional real chunk-packing cases cover lava, solid and air sections. Isolated loader probes exercise transformations, dependency checks, native pathfinder initialization, real ItemStack durability methods including 98/2031, and the vanilla no-slot container-refresh branch. See VALIDATION.md and TEST-RESULTS.txt for the tested mod combinations.
+
+No Minecraft client/world was started and no live server was accessed. Selection clearing, paced storage, focus/minimize behavior, tool swaps and deliberate relog have not been gameplay-tested. These are code and isolated-runtime checks, not a claim of unattended gameplay reliability. Servers with queues/authentication plugins or custom inventory protocols may require manual intervention. No private coordinates are included in this distribution.
+
+Quantity-limited `#mine 64 minecraft:sand` keeps tool protection but does not opt into auto-storage/recovery. Only placed chests/shulkers are supported; no portable-shulker deployment, crafting, sorting or external tool restocking.
+
+## Build
+
+Use Java 25 and Python 3:
+
+```sh
+python3 tools/bootstrap.py
+./gradlew --no-daemon --offline build
+python3 tools/loader_smoke.py --java-home "$JAVA_HOME" --work-dir /tmp/autostore-loader-check
 ```
 
-# FAQ
+Use a new empty loader directory. `--loader-jar` selects the loader; `--extra-mod` adds copied test mods; `--xaero-check` adds map classification checks. Dependencies are hash-pinned and not redistributed. See DEPENDENCIES.md and UPSTREAM.md for sources and licenses.
 
-## Can I use Baritone as a library in my custom utility client?
+## Repository builds
 
-That's what it's for, sure! (As long as usage complies with the LGPL 3.0 License)
-
-## How is it so fast?
-
-Magic. (Hours of [leijurv](https://github.com/leijurv/) enduring excruciating pain)
-
-### Additional Special Thanks To:
-
-![YourKit-Logo](https://www.yourkit.com/images/yklogo.png)
-
-YourKit supports open source projects with innovative and intelligent tools for monitoring and profiling Java and .NET applications.
-
-YourKit is the creator of the [YourKit Java Profiler](https://www.yourkit.com/java/profiler/), [YourKit .NET Profiler](https://www.yourkit.com/.net/profiler/), and [YourKit YouMonitor](https://www.yourkit.com/youmonitor/).
-
-We thank them for granting Baritone an OSS license so that we can make our software the best it can be.
-
-## Why is it called Baritone?
-
-It's named for FitMC's deep sultry voice.
+Use Java 25, run `python3 tools/bootstrap.py`, then `./gradlew --no-daemon --offline build`. Downloaded dependencies are checksum-verified and ignored by Git. Runtime and source jars are written to `build/libs/`. The upstream CI workflows are retained for provenance; release validation was run locally as documented in VALIDATION.md.

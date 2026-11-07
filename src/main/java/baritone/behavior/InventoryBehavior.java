@@ -55,6 +55,9 @@ public final class InventoryBehavior extends Behavior implements Helper {
 
     @Override
     public void onTick(TickEvent event) {
+        if (dev.autostore.Controller.INSTANCE!=null && dev.autostore.Controller.INSTANCE.miningTools.waiting()) {
+            lastTickRequestedMove=null;return;
+        }
         if (!Baritone.settings().allowInventory.value) {
             return;
         }
@@ -67,11 +70,15 @@ public final class InventoryBehavior extends Behavior implements Helper {
         }
         ticksSinceLastInventoryMove++;
         if (firstValidThrowaway() >= 9) { // aka there are none on the hotbar, but there are some in main inventory
-            requestSwapWithHotBar(firstValidThrowaway(), 8);
+            int destination=dev.autostore.Controller.INSTANCE!=null && dev.autostore.Controller.INSTANCE.miningTools.active()
+                ? dev.autostore.Controller.INSTANCE.miningTools.supplyRestockSlot() : 8;
+            if(destination>=0)requestSwapWithHotBar(firstValidThrowaway(), destination);
         }
         int pick = bestToolAgainst(Blocks.STONE);
         if (pick >= 9) {
-            requestSwapWithHotBar(pick, 0);
+            int destination=dev.autostore.Controller.INSTANCE!=null && dev.autostore.Controller.INSTANCE.miningTools.active()
+                ? dev.autostore.Controller.INSTANCE.miningTools.pickaxeRestockSlot() : 0;
+            if(destination>=0)requestSwapWithHotBar(pick, destination);
         }
         if (lastTickRequestedMove != null) {
             logDebug("Remembering to move " + lastTickRequestedMove[0] + " " + lastTickRequestedMove[1] + " from a previous tick");
@@ -145,7 +152,9 @@ public final class InventoryBehavior extends Behavior implements Helper {
             if (stack.isEmpty()) {
                 continue;
             }
-            if (Baritone.settings().itemSaver.value && (stack.getDamageValue() + Baritone.settings().itemSaverThreshold.value) >= stack.getMaxDamage() && stack.getMaxDamage() > 1) {
+            if(dev.autostore.Controller.INSTANCE!=null && !dev.autostore.Controller.INSTANCE.allowNativeMiningTool(stack))continue;
+            if (!(dev.autostore.Controller.INSTANCE!=null && dev.autostore.Controller.INSTANCE.miningTools.active())
+                && Baritone.settings().itemSaver.value && (stack.getDamageValue() + Baritone.settings().itemSaverThreshold.value) >= stack.getMaxDamage() && stack.getMaxDamage() > 1) {
                 continue;
             }
             if (stack.getItem().components().has(DataComponents.TOOL)) {
@@ -189,6 +198,8 @@ public final class InventoryBehavior extends Behavior implements Helper {
     }
 
     public boolean throwaway(boolean select, Predicate<? super ItemStack> desired, boolean allowInventory) {
+        Predicate<? super ItemStack> requested=desired;
+        desired=stack -> requested.test(stack) && (dev.autostore.Controller.INSTANCE==null || dev.autostore.Controller.INSTANCE.allowBuildingStack(stack));
         LocalPlayer p = ctx.player();
         NonNullList<ItemStack> inv = p.getInventory().getNonEquipmentItems();
         for (int i = 0; i < 9; i++) {
