@@ -1,9 +1,9 @@
-Baritone AutoStore 2.8.0-beta.1 — Minecraft 26.3
+Baritone AutoStore 2.8.0-beta.2 — Minecraft 26.3
 Validation date: 2026-11-07
 Build: PASS (Java 25 / Gradle 9.5.0)
-Total: 171 tests, zero failures/errors/skips
+Total: 175 tests, zero failures/errors/skips
 dev.autostore.core.BatchTransferTest: 8 tests; PASS
-dev.autostore.core.BytecodeContractTest: 18 tests; PASS
+dev.autostore.core.BytecodeContractTest: 19 tests; PASS
 dev.autostore.core.CooperationTest: 7 tests; PASS
 dev.autostore.core.DamageWatchTest: 10 tests; PASS
 dev.autostore.core.DepotApproachTest: 3 tests; PASS
@@ -13,6 +13,7 @@ dev.autostore.core.LoopTest: 34 tests; PASS
 dev.autostore.core.PackagingTest: 1 tests; PASS
 dev.autostore.core.PolicyTest: 6 tests; PASS
 dev.autostore.core.ProfileStoreTest: 7 tests; PASS
+dev.autostore.core.RuntimeTraceTest: 3 tests; PASS
 dev.autostore.core.SearchCandidatesTest: 10 tests; PASS
 dev.autostore.core.ToolReserveTest: 12 tests; PASS
 dev.autostore.platform.IdleSleepGuardTest: 2 tests; PASS
@@ -25,7 +26,10 @@ Isolated Fabric Loader 0.19.5 + Meteor 26.3-15: transformed classes and backgrou
 Expanded installed-modpack probe excluding ViaFabricPlus (16 top-level mods): PASS
 Actual owned background container GUI bypass and focused/unowned fallback: PASS
 Actual background native cursor resync bypass: PASS
-Frame bypass through all active storage states: PASS
+Frame bypass plus queued world updates through all active storage states: PASS
+Previous beta 1 jar fails new world-update regression as expected: PASS negative control
+Native post-storage search reset, stale scan invalidation and target/quantity preservation: PASS
+Per-process bounded diagnostic history and write-failure handling: PASS
 Real 26.3 chunk adapter and installed Trouser Streak 1.7.0 field contract: PASS
 Actual shulker templates: rockets, mixed contents and empty recovery: PASS
 12 lava/solid/air chunk-packing cases: PASS

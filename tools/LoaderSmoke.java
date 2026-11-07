@@ -141,6 +141,12 @@ public final class LoaderSmoke {
         Class<?> mcClass=Class.forName("net.minecraft.client.Minecraft",true,target);
         Class<?> controllerClass=Class.forName("dev.autostore.Controller",true,target);
         Object mcFixture=allocate.invoke(unsafe,mcClass),controllerFixture=allocate.invoke(unsafe,controllerClass);
+        Object levelFixture=allocate.invoke(unsafe,Class.forName("net.minecraft.client.multiplayer.ClientLevel",true,target));
+        var lightUpdates=new java.util.ArrayDeque<Runnable>();
+        fixtureField(levelFixture,"lightUpdateQueue",lightUpdates);
+        Object chunkCache=allocate.invoke(unsafe,Class.forName("net.minecraft.client.multiplayer.ClientChunkCache",true,target));
+        fixtureField(chunkCache,"lightEngine",Class.forName("net.minecraft.world.level.lighting.LevelLightEngine",true,target).getField("EMPTY").get(null));
+        fixtureField(levelFixture,"chunkSource",chunkCache);fixtureField(mcFixture,"level",levelFixture);
         Class<?> windowClass=Class.forName("com.mojang.blaze3d.platform.Window",true,target);
         Object windowFixture=allocate.invoke(unsafe,windowClass);
         fixtureField(mcFixture,"window",windowFixture);
@@ -161,7 +167,9 @@ public final class LoaderSmoke {
         try {
             var frame=mcClass.getMethod("renderFrame",boolean.class);
             for(String phase:new String[]{"MINING","QUIESCING","RETURNING","OPENING","DEPOSITING","REOPENING","VERIFYING","RESUMING","WAITING_STORAGE"}) {
+                var executed=new java.util.concurrent.atomic.AtomicInteger();lightUpdates.add(executed::incrementAndGet);
                 fixtureField(loopFixture,"state",stateClass.getField(phase).get(null));frame.invoke(mcFixture,true);
+                if(executed.get()!=1 || !lightUpdates.isEmpty())throw new AssertionError("Background world updates were starved in "+phase);
             }
             fixtureField(loopFixture,"state",stateClass.getField("DEPOSITING").get(null));
             checkHeadlessMenu(target,unsafe,allocate,mcFixture,guiFixture,windowFixture,controllerFixture,fakePlayer,menu);
@@ -174,6 +182,8 @@ public final class LoaderSmoke {
             expectNativeRender(frame,mcFixture); // no bot means no global rendering change
         } finally {instance.set(null,oldInstance);}
         System.out.println("SMOKE_OK actual transformed background frame bypass; foreground, pause and disarmed fall through normally");
+        System.out.println("SMOKE_OK queued world lighting updates drain in every active phase without a GPU surface");
+        checkMiningResume(target,unsafe,allocate);
         // Exercise real native goal construction after registry bootstrap, without a client/world.
         Class<?> goals=Class.forName("baritone.process.MineGoals",true,target);
         Class<?> blocks=Class.forName("net.minecraft.world.level.block.Blocks",true,target);
@@ -230,6 +240,30 @@ public final class LoaderSmoke {
         check.invoke(null);
         System.out.println("SMOKE_OK runtime dependency checksums");
         System.out.println("SMOKE_COMPLETE: no Minecraft client, world, account, or network session started.");
+    }
+    private static void checkMiningResume(ClassLoader target,Object unsafe,java.lang.reflect.Method allocate)throws Exception {
+        Class<?> minerClass=Class.forName("baritone.process.MineProcess",true,target);
+        Object miner=allocate.invoke(unsafe,minerClass);
+        Object filter=allocate.invoke(unsafe,Class.forName("baritone.api.utils.BlockOptionalMetaLookup",true,target));
+        Object cooldown=Class.forName("baritone.cache.TargetCooldown",true,target).getConstructor().newInstance();
+        Object position=Class.forName("net.minecraft.core.BlockPos",true,target).getConstructor(int.class,int.class,int.class).newInstance(1,70,1);
+        cooldown.getClass().getMethod("reject",Object.class,long.class).invoke(cooldown,position,100L);
+        fixtureField(miner,"filter",filter);fixtureField(miner,"desiredQuantity",321);
+        fixtureField(miner,"searchGeneration",7L);fixtureField(miner,"failedTargets",cooldown);
+        fixtureField(miner,"blacklist",java.util.List.of(position));fixtureField(miner,"knownOreLocations",java.util.List.of(position));
+        fixtureField(miner,"branchPoint",position);fixtureField(miner,"exploringSand",true);fixtureField(miner,"tickCount",17);
+        minerClass.getMethod("resumeAfterStorage").invoke(miner);
+        for(String field:new String[]{"blacklist","knownOreLocations"})if(!((java.util.List<?>)fixtureValue(miner,field)).isEmpty())throw new AssertionError(field+" retained stale targets");
+        if(!((java.util.List<?>)cooldown.getClass().getMethod("snapshot",long.class).invoke(cooldown,101L)).isEmpty())throw new AssertionError("Cooldown not cleared");
+        if(fixtureValue(miner,"filter")!=filter || !Integer.valueOf(321).equals(fixtureValue(miner,"desiredQuantity")))throw new AssertionError("Native target or quantity replaced");
+        if(!Long.valueOf(8L).equals(fixtureValue(miner,"searchGeneration")) || !Boolean.TRUE.equals(fixtureValue(miner,"searchRefreshPending")))throw new AssertionError("Old scans not invalidated / refresh not pending");
+        if(fixtureValue(miner,"branchPoint")!=null || !Boolean.FALSE.equals(fixtureValue(miner,"exploringSand")) || !Integer.valueOf(0).equals(fixtureValue(miner,"tickCount")))throw new AssertionError("Stale exploration state");
+        fixtureField(miner,"filter",null);minerClass.getMethod("resumeAfterStorage").invoke(miner);
+        if(!Long.valueOf(8L).equals(fixtureValue(miner,"searchGeneration")))throw new AssertionError("Inactive job changed");
+        System.out.println("SMOKE_OK native mining resume clears rejected targets, invalidates old scans and preserves target/quantity; inactive job unchanged");
+    }
+    private static Object fixtureValue(Object fixture,String name)throws Exception {
+        var field=fixture.getClass().getDeclaredField(name);field.setAccessible(true);return field.get(fixture);
     }
     private static Object supplyStack(ClassLoader target,String item,int count,java.util.Map<String,Object> extra)throws Exception {
         Class<?> map=Class.forName("net.minecraft.core.component.DataComponentMap",true,target),builderClass=Class.forName("net.minecraft.core.component.DataComponentMap$Builder",true,target);

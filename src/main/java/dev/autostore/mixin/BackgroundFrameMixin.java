@@ -27,6 +27,9 @@ public abstract class BackgroundFrameMixin {
         // unfocused. Those operations can stall the SAME thread that drives deposits.
         deltaTracker.advanceRealTime(Util.getMillis());
         mc.gui.update();
+        // This is gameplay maintenance despite living in vanilla renderFrame: it
+        // drains queued chunk lighting work. Never starve it when drawing is skipped.
+        if(mc.level!=null)mc.level.update();
         if(mc.level!=null && mc.player!=null)pick(1.0F);
         // Resource/render tasks must still be drained; no surface presentation is needed.
         RenderSystem.executePendingTasks();

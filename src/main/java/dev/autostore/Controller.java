@@ -47,6 +47,7 @@ public final class Controller implements Loop.Port {
     public final MiningTools miningTools=new MiningTools(this);
     private final MiningRecovery recovery=new MiningRecovery(this);
     private final dev.autostore.platform.IdleSleepGuard sleepGuard=new dev.autostore.platform.IdleSleepGuard();
+    private final RuntimeTrace runtimeTrace=new RuntimeTrace(FabricLoader.getInstance().getConfigDir().resolve("autostore"),ProcessHandle.current().pid());
     private int restoreScreenKind;
     private net.minecraft.client.gui.screens.Screen restoreMapScreen;
     private boolean restorePauseMenu;
@@ -138,7 +139,7 @@ public final class Controller implements Loop.Port {
             baritone().getPathingControlManager().registerProcess(cooperativePause);
             storageProcess = new IBaritoneProcess() {
                 public boolean isActive() { return armed && Cooperation.storageOwnsPath(loop.state); }
-                public boolean isTemporary() { return true; } // retain MineProcess targets, blacklist and branch point
+                public boolean isTemporary() { return true; } // retain the native job and its target
                 public double priority() { return 100; }
                 public PathingCommand onTick(boolean failed,boolean safe) {
                     if(failed && (loop.state==Loop.State.RETURNING || loop.state==Loop.State.REOPENING)) pathFailed=true;
@@ -282,6 +283,7 @@ public final class Controller implements Loop.Port {
         }
     }
     @EventHandler(priority = EventPriority.LOWEST) private void tick(TickEvent.Pre event) {
+        traceRuntime();
         finishStartupContainer();
         if(recovery.tick()) {
             if(!recovery.pending() && !cooperativeJob())sleepGuard.close();
@@ -302,6 +304,23 @@ public final class Controller implements Loop.Port {
             if (switch(loop.state) { case MINING, RETURNING, REOPENING, WAITING_STORAGE, FAULTED, PAUSED -> true; default -> false; })
                 message(loop.state+": "+statusReason());
         }
+    }
+    private void traceRuntime() {
+        long time=now(),gap=runtimeTrace.tick(time);
+        boolean focused=mc.isWindowActive();
+        if(!armed || !runtimeTrace.due(time,loop.state,focused))return;
+        RuntimeTrace.Blocker blocker=RuntimeTrace.Blocker.NONE;
+        if(mc.player==null || mc.level==null)blocker=RuntimeTrace.Blocker.NO_WORLD;
+        else if(manuallyPaused)blocker=RuntimeTrace.Blocker.MANUAL_PAUSE;
+        else if(miningTools.waiting())blocker=RuntimeTrace.Blocker.TOOL;
+        else if(clearing() && baritone().getBuilderProcess().isPaused())blocker=RuntimeTrace.Blocker.BUILDER_PAUSE;
+        else if(externalScreen())blocker=RuntimeTrace.Blocker.CONTAINER;
+        else if(eatingRequested() || Modules.get().get(AutoGap.class)!=null && Modules.get().get(AutoGap.class).isEating())blocker=RuntimeTrace.Blocker.EATING;
+        else if(mc.player.isUsingItem())blocker=RuntimeTrace.Blocker.ITEM_USE;
+        else if(busy())blocker=RuntimeTrace.Blocker.COMBAT;
+        var path=baritone().getPathingBehavior();
+        runtimeTrace.record(new RuntimeTrace.Sample(time,gap,loop.state,focused,blocker,
+            path.isPathing(),path.getInProgress().isPresent(),pathFailed,ownsScreen,travelProgressCounter,fullSnapshotRevision));
     }
     @EventHandler private void left(GameLeftEvent event) {
         if (armed) { interrupted = true; emergency("Disconnected; manual reconciliation required"); }
@@ -601,6 +620,10 @@ public final class Controller implements Loop.Port {
         travelGoal=null;
         releaseSettings();
         enforce(BaritoneAPI.getSettings().censorCoordinates,true);
+        // Storage moved us away from the old search origin. Reconsider rejected
+        // targets from here without replacing #mine or touching a selection build.
+        if(nativeJob==NativeJob.MINE && loop.state==Loop.State.RESUMING)
+            ((baritone.process.MineProcess)baritone().getMineProcess()).resumeAfterStorage();
         restoreUserScreen();
         // MineProcess is still active. The temporary process releases control when the loop returns to MINING.
     }

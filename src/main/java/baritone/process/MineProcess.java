@@ -66,6 +66,7 @@ public final class MineProcess extends BaritoneProcessHelper implements IMinePro
     private int desiredQuantity;
     private int tickCount;
     private boolean exploringSand;
+    private boolean searchRefreshPending;
 
     public MineProcess(Baritone baritone) {
         super(baritone);
@@ -78,6 +79,12 @@ public final class MineProcess extends BaritoneProcessHelper implements IMinePro
 
     @Override
     public PathingCommand onTick(boolean calcFailed, boolean isSafeToCancel) {
+        if(searchRefreshPending) {
+            searchRefreshPending=false;
+            rescan(new ArrayList<>(),new CalculationContext(baritone),searchGeneration);
+            if(!isActive())return null;
+            calcFailed=false; // a pre-detour calculation does not reject a freshly scanned target
+        }
         blacklist=failedTargets.snapshot(System.nanoTime()/1_000_000);
         boolean nearbyMaterial=MineGoals.nearbyMaterial(Baritone.settings().legitMine.value,
             filter.blocks().stream().map(BlockOptionalMeta::getBlock).toList());
@@ -553,6 +560,7 @@ public final class MineProcess extends BaritoneProcessHelper implements IMinePro
         this.branchPoint = null;
         this.branchPointRunaway = null;
         this.exploringSand = false;
+        this.searchRefreshPending = false;
         this.anticipatedDrops = new HashMap<>();
         if (filter != null) {
             rescan(new ArrayList<>(), new CalculationContext(baritone),searchGeneration);
@@ -560,13 +568,22 @@ public final class MineProcess extends BaritoneProcessHelper implements IMinePro
         if(observed) storage.observeNativeMine(quantity,filter);
     }
 
-    /** User-requested stuck recovery: keep the native target and quantity; discard stale search/path hints. */
+    /** Resume after a storage detour or stuck recovery, preserving the native target and quantity. */
     public synchronized void recoverSearch() {
+        if(!isActive())return;
+        resumeAfterStorage();
+        searchRefreshPending=false;
+        rescan(new ArrayList<>(),new CalculationContext(baritone),searchGeneration);
+    }
+
+    /** Invalidate old asynchronous scans immediately; rescan only when this process regains control. */
+    public synchronized void resumeAfterStorage() {
         if(!isActive())return;
         searchGeneration++;failedTargets.clear();
         blacklist=new ArrayList<>();knownOreLocations=new ArrayList<>();
         branchPoint=null;branchPointRunaway=null;exploringSand=false;anticipatedDrops=new HashMap<>();
-        rescan(new ArrayList<>(),new CalculationContext(baritone),searchGeneration);
+        tickCount=0;
+        searchRefreshPending=true;
     }
 
     private BlockOptionalMetaLookup filterFilter() {

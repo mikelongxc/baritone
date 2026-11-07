@@ -8,7 +8,7 @@ Meteor binary: 26.3-15; exact hash and dependency provenance in DEPENDENCIES.md.
 
 This is an unofficial development fork. It builds actual Baritone source into a single Fabric replacement jar with a Meteor addon entrypoint. AutoStore additions originated in the earlier 1.x addon. Existing registrations migrate without old quarry/corridor restrictions.
 
-## Final behavior in 2.8.0-beta.1 — November 7, 2026
+## Final behavior in 2.8.0-beta.2 — November 7, 2026
 
 - Preserve native MineProcess and BuilderProcess ownership during temporary storage navigation. Only explicit clear-area selections opt the builder into storage. New builder jobs terminate previous supervision before replacing the schematic.
 - Preserve equipment and initial selection-clearing supplies, support mixed new drops, nearest registered storage, fallback/cooldowns, and coordinate-free status.
@@ -31,6 +31,8 @@ This is an unofficial development fork. It builds actual Baritone source into a 
 - 2.7.0: correct fully occupied Elytra section packing to Octree.SIZEOF_X16 (512 bytes), including section offsets. Source: [cabaletta/baritone #5113](https://github.com/cabaletta/baritone/issues/5113). Add twelve real packing cases; a negative control restoring the old two-byte calculation fails.
 - 2.8.0-beta.1: add native Elytra trail supervision using Trouser Streak chunk evidence, bounded search, carried rocket-shulker refueling, spare Elytra swaps, local checkpoints and explicit native landing requests.
 - 2.8.0-beta.1: keep managed background server containers headless; omit native cursor resync for unfocused jobs; send actual facing rotation before storage interactions.
+- 2.8.0-beta.2: refresh native mining search after completed deposits, invalidating stale scan results and rejected targets while retaining the target and quantity. Leave selection clearing unchanged.
+- 2.8.0-beta.2: retain ClientLevel world/lighting maintenance in the background frame bypass; add bounded coordinate-free diagnostic histories per process.
 - Expand tests and isolated loader probes. Actual gameplay and reconnects remain untested.
 
 Original Baritone sources remain LGPL-3.0-or-later; see LICENSE (included in the jar as LICENSE-Baritone). AutoStore additions are GPL-3.0-only; see LICENSE-AutoStore. The combined distribution includes both notices and complete corresponding source. Original author notices are retained. The nested Nether Pathfinder jar retains its notices/resources. Minecraft, Meteor and Xaero are external dependencies and are not redistributed here.

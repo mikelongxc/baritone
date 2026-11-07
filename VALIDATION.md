@@ -1,15 +1,22 @@
-# AutoStore 2.8.0-beta.1 validation — 2026-11-07
+# AutoStore 2.8.0-beta.2 validation — 2026-11-07
 
 ## Verified
 
 - Java 25 / Gradle 9.5.0 build against Minecraft 26.3, Meteor 26.3-15, Fabric Loader 0.19.5. All 128 pinned dependency artifacts verified.
-- 171 JUnit tests pass. Storage coverage includes full/partial/alternate chests, transaction confirmation, changed contents, retained pending transfers, route fallback, exhausted-storage relog eligibility and post-rejoin storage priority. Tool tests cover the rounded 5% reserve, 98/2031 netherite, unconfirmed wear and inventory spares. Recovery, passive screens, native job ownership and packaging are also covered.
+- 175 JUnit tests pass. Storage coverage includes full/partial/alternate chests, transaction confirmation, changed contents, retained pending transfers, route fallback, exhausted-storage relog eligibility and post-rejoin storage priority. Tool tests cover the rounded 5% reserve, 98/2031 netherite, unconfirmed wear and inventory spares. Recovery, passive screens, native job ownership and packaging are also covered.
 - Isolated Fabric/Mixin probe passes with Meteor alone and with Sodium 0.9.2, Fabric API 0.165.2, Trouser Streak 1.7.0, Xaero World Map 1.47.2, Minimap 26.6.2 and XaeroPlus 2.37.2.
 - A second expanded probe passes with every installed top-level mod except ViaFabricPlus (16 total, including AutoStore in place of stock Baritone). This also includes Distant Horizons, Continuity, Freecam, Mod Menu and the remaining utility mods.
 - Probes transform relevant Minecraft/Meteor/Baritone classes, including ComeCommand (the target missing from the incompatible standalone build). Exercise the actual transformed unfocused rendering bypass and focused/paused/disarmed fallback, actual ItemStack durability methods, vanilla no-slot PICKUP, native exploration policy, exact dependency hashes and macOS ARM64 native pathfinder capability.
 - Twelve synthetic chunk cases invoke the actual NetherPathfinderContext.writeChunkData. Lava, netherrack and air at section indices 0, 1, 7 and 23 verify all occupancy bytes, untouched adjacent sections and buffer guards. A separate test jar restoring the original two-byte calculation fails on lava, confirming that this regression detects the bug.
 
-## New trail/background checks
+## Beta 2 regression checks
+
+- Native MineProcess fixtures verify that storage resume clears cooldowns/candidates/exploration hints, advances the search generation, and preserves the same filter and quantity. The rescan is deferred until native mining regains control; inactive jobs remain untouched. A bytecode contract checks that the controller calls this only for MINE in RESUMING, excluding selection clearing.
+- Actual transformed background frames drain queued ClientLevel world/lighting updates in every active storage state with no GPU surface. The previous beta 1 jar fails this new regression with an unprocessed queue, providing a negative control.
+- Per-process diagnostic histories are bounded to 160 entries. Tests cover separate process files, transitions, tick gaps and failure to write diagnostics without disrupting operation.
+- The 16-mod expanded loader probe passes, excluding ViaFabricPlus as described below. Local thread samples did not capture the reported RETURNING stall. They do not establish a conflict with a second account. Live focus behavior remains unverified.
+
+## Retained trail/background checks
 
 - 31 new tests cover connected trail direction, turns, new-chunk barriers, self-trail exclusion, bounded search/memory, persistence and scoping, fuel/Elytra/tool thresholds, and server-confirmed transfer outcomes including partial, rejected, changed, stale and duplicate replies.
 - The isolated probe invokes the actual transformed Gui.setScreen on owned background chest fixtures: opening and closing return without GUI/native initialization while the server menu remains installed. Focused/unowned cases reach vanilla GUI code. The transformed MouseHandler.resyncMousePosition skips native SDL queries only for the managed unfocused job. Render-frame bypass is exercised through every active AutoStore storage state.

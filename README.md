@@ -1,8 +1,14 @@
-# Baritone AutoStore 2.8.0-beta.1 — Minecraft 26.3
+# Baritone AutoStore 2.8.0-beta.2 — Minecraft 26.3
 
 A source fork of Baritone for Meteor 26.3-15. Baritone owns mining and selection clearing; AutoStore temporarily takes control to deposit items in registered chests or placed shulkers. Existing registrations remain compatible.
 
-Download the runtime jar from [Releases](https://github.com/mikelongxc/baritone/releases/tag/autostore-2.8.0-beta.1). See [validation results](VALIDATION.md) and [upstream provenance](UPSTREAM.md).
+Download the runtime jar from [Releases](https://github.com/mikelongxc/baritone/releases/tag/autostore-2.8.0-beta.2). See [validation results](VALIDATION.md) and [upstream provenance](UPSTREAM.md).
+
+## Storage resume and background maintenance
+
+After a completed deposit, native #mine now clears rejected targets and stale search hints, invalidates old asynchronous scans, and rescans when it regains control. The requested blocks and quantity stay unchanged; selection clearing is unaffected. Background frames now retain Minecraft world/lighting updates as well as game ticks. The old rendering bypass omitted those updates. This fixes that omission; the exact reported live focus stall is not yet proven resolved.
+
+A bounded diagnostic history is saved automatically to `config/autostore/runtime-<process-id>.json` while AutoStore is armed. Each game instance uses its own file. It records phase, focus, activity blockers, pathing and progress counters, with no positions, server/account identifiers or inventory contents. No extra command or configuration is needed.
 
 ## Trail flight and carried-shulker refueling
 
@@ -13,7 +19,7 @@ Background managed chest/shulker transactions now keep the server menu open with
 ## Install and use
 
 1. Fully quit every Minecraft instance. A running game keeps its loaded jar even if you replace or trash that file.
-2. Keep Meteor 26.3-15, Fabric API and your other compatible mods. Install only `baritone-autostore-26.3-autostore-2.8.0-beta.1.jar`; remove older Baritone/AutoStore runtime jars. Do not install the sources jar or source ZIP.
+2. Keep Meteor 26.3-15, Fabric API and your other compatible mods. Install only `baritone-autostore-26.3-autostore-2.8.0-beta.2.jar`; remove older Baritone/AutoStore runtime jars. Do not install the sources jar or source ZIP.
 3. Launch Minecraft 26.3 with Java 25 and Fabric Loader 0.19.5 or newer.
 4. Look at each chest or already placed shulker from a reachable standing position and run `#store`. Previously saved chests do not need re-registration.
 5. Run `#mine minecraft:sand`, or mark a selection with `#sel pos1` and `#sel pos2`, then run `#sel ca`.
@@ -32,7 +38,7 @@ Commands:
 
 A screen is no longer a fatal startup validation error. The managed job remains armed while a blocking screen is open and continues automatically when it clears. If a new #mine or #sel ca begins with an ordinary chest/placed shulker already open, AutoStore captures that exact menu and closes it automatically once the cursor is empty. It does not transfer/drop the cursor stack, close a replacement menu you subsequently open, or close while manually paused or a transaction is pending. Inventory, Esc and Xaero retain their passive-screen behavior. Other container types wait instead of being closed automatically.
 
-For an old session already stuck at `PAUSED: Close the other container or blocking screen before starting`, close the blocking screen and rerun the same #mine command. The startup fix takes effect after a full client restart onto 2.8.0-beta.1.
+For an old session already stuck at `PAUSED: Close the other container or blocking screen before starting`, close the blocking screen and rerun the same #mine command. The startup fix takes effect after a full client restart onto 2.8.0-beta.2.
 
 ## Deposits and background operation
 
@@ -40,7 +46,7 @@ The chest stays open for the entire load. AutoStore sends one quick-move, obtain
 
 Implementation detail: vanilla can omit echoes for correctly predicted clicks. A stale-state PICKUP of slot -1 requests a full container snapshot. Slot -1 is a no-op in the pinned vanilla implementation; it is not the outside/drop slot -999. If a server rejects this resync request, automatic reconciliation uses a normal reopen of the same chest instead. The loader probe exercises the actual vanilla no-op branch; live server compatibility is not established.
 
-Inventory, Esc and the main Xaero map may remain open. Storage temporarily replaces and then restores those passive screens. A cursor-held stack, unrelated chest/container, or a chat draft at the storage boundary still waits. While a managed job or deliberate recovery is active and the window is unfocused, AutoStore bypasses world/UI drawing and GPU surface presentation. The ordinary game-thread loop still polls window events, processes packets and runs game ticks; target picking and UI housekeeping continue, paced at 20 iterations per second. This removes the background graphics/presentation wait from the deposit loop. No focus spoofing or mouse capture is used. The background window's picture remains still until it regains focus; then normal rendering resumes. Explicit #pause, #stop and idle clients retain normal rendering. Saved video settings are unchanged. Resource tasks still drain, and third-party tick suspension or OS sleep remains outside this guarantee.
+Inventory, Esc and the main Xaero map may remain open. Storage temporarily replaces and then restores those passive screens. A cursor-held stack, unrelated chest/container, or a chat draft at the storage boundary still waits. While a managed job or deliberate recovery is active and the window is unfocused, AutoStore bypasses world/UI drawing and GPU surface presentation. The ordinary game-thread loop still polls window events, processes packets and runs game ticks; world/lighting maintenance, target picking and UI housekeeping continue, paced at 20 iterations per second. This removes the background graphics/presentation wait from the deposit loop. No focus spoofing or mouse capture is used. The background window's picture remains still until it regains focus; then normal rendering resumes. Explicit #pause, #stop and idle clients retain normal rendering. Saved video settings are unchanged. Resource tasks still drain, and third-party tick suspension or OS sleep remains outside this guarantee.
 
 On macOS, an active managed job prevents idle system sleep using a process-scoped `caffeinate` assertion. Explicit Sleep, lid closure, shutdown and loss of network still suspend operation. AutoEat, AutoTool and KillAura may remain enabled; eating/combat yield movement. An in-flight deposit is confirmed before yielding its menu.
 

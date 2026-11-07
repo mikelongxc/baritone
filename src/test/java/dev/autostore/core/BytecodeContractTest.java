@@ -187,12 +187,28 @@ class BytecodeContractTest {
         Set<String> names=calls(hook);
         assertTrue(names.containsAll(Set.of("keepRunningInMenus","isWindowActive","advanceRealTime","update","pick","executePendingTasks","limitDisplayFPS","cancel")));
         assertFalse(names.contains("tick"),"Must not duplicate ticks or invoke game code on a separate thread");
+        assertTrue(java.util.stream.StreamSupport.stream(hook.instructions.spliterator(),false)
+            .anyMatch(i->i instanceof MethodInsnNode c && c.owner.equals("net/minecraft/client/multiplayer/ClientLevel") && c.name.equals("update")),
+            "Skipping graphics must retain the world maintenance previously done by renderFrame");
         for(String forbidden:List.of("render","extract","present","acquireNextTexture","grabMouse","glfwFocusWindow","setWindowActive"))
             assertFalse(names.contains(forbidden));
         AnnotationNode injection=annotations(hook.visibleAnnotations,hook.invisibleAnnotations).stream().filter(a->a.desc.endsWith("/Inject;")).findFirst().orElseThrow();
         assertEquals(Boolean.TRUE,value(injection,"cancellable"));
         @SuppressWarnings("unchecked") List<AnnotationNode> at=(List<AnnotationNode>)value(injection,"at");
         assertEquals("HEAD",value(at.getFirst(),"value"));
+    }
+    @Test void depositResumeRefreshesOnlyNativeMineAndDefersScanningUntilItRegainsControl() throws Exception {
+        ClassNode controller=read(Files.readAllBytes(Path.of("build/classes/java/main/dev/autostore/Controller.class")));
+        MethodNode resume=controller.methods.stream().filter(m->m.name.equals("resumeMining")).findFirst().orElseThrow();
+        assertTrue(calls(resume).contains("resumeAfterStorage"));
+        Set<String> guards=new HashSet<>();
+        for(AbstractInsnNode i:resume.instructions)if(i instanceof FieldInsnNode f && f.getOpcode()==Opcodes.GETSTATIC)guards.add(f.name);
+        assertTrue(guards.containsAll(Set.of("MINE","RESUMING")),"Never reset a builder or a stopped job");
+        ClassNode miner=read(Files.readAllBytes(Path.of("build/classes/java/main/baritone/process/MineProcess.class")));
+        MethodNode reset=miner.methods.stream().filter(m->m.name.equals("resumeAfterStorage")).findFirst().orElseThrow();
+        assertFalse(calls(reset).contains("rescan"),"Wait until native mining owns control before reading the world");
+        MethodNode tick=miner.methods.stream().filter(m->m.name.equals("onTick")).findFirst().orElseThrow();
+        assertTrue(calls(tick).contains("rescan"));
     }
     @Test void backgroundRenderingCancellationCannotBypassVanillaPacketsTicksOrEventPolling() throws Exception {
         try(JarFile jar=new JarFile("deps/minecraft-26.3.jar")) {
